@@ -218,6 +218,28 @@ services:
   #     - space
   #     - admin
 
+
+
+  # proxy:
+  #   build:
+  #     context: ./apps/proxy
+  #     dockerfile: Dockerfile.ce
+  #   restart: unless-stopped
+  #   networks:
+  #     - dev_env
+  #   ports:
+  #     - "80:80"
+  #     - "443:443"
+  #   env_file:
+  #     - .env
+  #   environment:
+  #     FILE_SIZE_LIMIT: ${FILE_SIZE_LIMIT:-5242880}
+  #     BUCKET_NAME: ${AWS_S3_BUCKET_NAME:-uploads}
+  #   extra_hosts:
+  #     - "host.docker.internal:host-gateway"
+  #   depends_on:
+  #     - api
+
 volumes:
   redisdata:
   uploads:
