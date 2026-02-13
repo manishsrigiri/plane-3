@@ -1,0 +1,15 @@
+[2026-02-12 07:08:40] =========================================
+[2026-02-12 07:08:40] Plane Health Check Started (DRY-RUN)
+[2026-02-12 07:08:40] =========================================
+[0;34m[2026-02-12 07:08:40] ℹ Checking for PM2 conflicts...[0m
+[0;32m[2026-02-12 07:08:42] ✓ No PM2 conflicts detected[0m
+[0;34m[2026-02-12 07:08:42] ℹ Checking HTTP endpoints...[0m
+[0;32m[2026-02-12 07:08:42] ✓ Web (port 3000) is responding (HTTP 200)[0m
+[0;32m[2026-02-12 07:08:42] ✓ Live (port 3100) is responding (HTTP 404)[0m
+[0;32m[2026-02-12 07:08:42] ✓ Admin (port 3001) is responding (HTTP 404)[0m
+[0;32m[2026-02-12 07:08:42] ✓ API (port 8000) is responding (HTTP 200)[0m
+[0;32m[2026-02-12 07:08:42] ✓ Space (port 3002) is responding (HTTP 404)[0m
+[2026-02-12 07:08:42] =========================================
+[0;32m[2026-02-12 07:08:42] ✓ All HTTP endpoints responding - System is healthy![0m
+[2026-02-12 07:08:42] =========================================
+[0;36m[2026-02-12 07:08:42] [DRY-RUN] In normal mode, would exit here with no changes[0m
