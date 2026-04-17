@@ -23,36 +23,40 @@ import { KanBanLayout } from "../kanban/roots/project-root";
 import { ListLayout } from "../list/roots/project-root";
 import { ProjectSpreadsheetLayout } from "../spreadsheet/roots/project-root";
 
-const ProjectIssueLayout = (props: { activeLayout: EIssueLayoutTypes | undefined }) => {
-  switch (props.activeLayout) {
+const ProjectIssueLayout = (props: { activeLayout: EIssueLayoutTypes | undefined; isEpic?: boolean }) => {
+  const { activeLayout, isEpic = false } = props;
+
+  switch (activeLayout) {
     case EIssueLayoutTypes.LIST:
-      return <ListLayout />;
+      return <ListLayout isEpic={isEpic} />;
     case EIssueLayoutTypes.KANBAN:
-      return <KanBanLayout />;
+      return <KanBanLayout isEpic={isEpic} />;
     case EIssueLayoutTypes.CALENDAR:
-      return <CalendarLayout />;
+      return <CalendarLayout isEpic={isEpic} />;
     case EIssueLayoutTypes.GANTT:
-      return <BaseGanttRoot />;
+      return <BaseGanttRoot isEpic={isEpic} />;
     case EIssueLayoutTypes.SPREADSHEET:
-      return <ProjectSpreadsheetLayout />;
+      return <ProjectSpreadsheetLayout isEpic={isEpic} />;
     default:
       return null;
   }
 };
 
-export const ProjectLayoutRoot: FC = observer(() => {
+export const ProjectLayoutRoot: FC<{ isEpic?: boolean }> = observer((props) => {
+  const { isEpic = false } = props;
   // router
   const { workspaceSlug: routerWorkspaceSlug, projectId: routerProjectId } = useParams();
   const workspaceSlug = routerWorkspaceSlug ? routerWorkspaceSlug.toString() : undefined;
   const projectId = routerProjectId ? routerProjectId.toString() : undefined;
   // hooks
-  const { issues, issuesFilter } = useIssues(EIssuesStoreType.PROJECT);
+  const storeType = isEpic ? EIssuesStoreType.EPIC : EIssuesStoreType.PROJECT;
+  const { issues, issuesFilter } = useIssues(storeType);
   // derived values
   const workItemFilters = projectId ? issuesFilter?.getIssueFilters(projectId) : undefined;
   const activeLayout = workItemFilters?.displayFilters?.layout;
 
   const { isLoading } = useSWR(
-    workspaceSlug && projectId ? `PROJECT_ISSUES_${workspaceSlug}_${projectId}` : null,
+    workspaceSlug && projectId ? `PROJECT_${isEpic ? "EPICS" : "ISSUES"}_${workspaceSlug}_${projectId}` : null,
     async () => {
       if (workspaceSlug && projectId) {
         await issuesFilter?.fetchFilters(workspaceSlug, projectId);
@@ -71,10 +75,10 @@ export const ProjectLayoutRoot: FC = observer(() => {
     );
 
   return (
-    <IssuesStoreContext.Provider value={EIssuesStoreType.PROJECT}>
+    <IssuesStoreContext.Provider value={storeType}>
       <ProjectLevelWorkItemFiltersHOC
         enableSaveView
-        entityType={EIssuesStoreType.PROJECT}
+        entityType={storeType}
         entityId={projectId}
         filtersToShowByLayout={ISSUE_DISPLAY_FILTERS_BY_PAGE.issues.filters}
         initialWorkItemFilters={workItemFilters}
@@ -99,7 +103,7 @@ export const ProjectLayoutRoot: FC = observer(() => {
                   <Spinner className="w-4 h-4" />
                 </div>
               )}
-              <ProjectIssueLayout activeLayout={activeLayout} />
+              <ProjectIssueLayout activeLayout={activeLayout} isEpic={isEpic} />
             </div>
             {/* peek overview */}
             <IssuePeekOverview />

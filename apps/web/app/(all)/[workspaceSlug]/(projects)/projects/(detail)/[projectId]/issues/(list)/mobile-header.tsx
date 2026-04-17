@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from "react";
 import { observer } from "mobx-react";
-import { useParams } from "next/navigation";
+import { useParams, usePathname } from "next/navigation";
 import { ChevronDown } from "lucide-react";
 // plane imports
 import { EIssueFilterType, ISSUE_DISPLAY_FILTERS_BY_PAGE } from "@plane/constants";
@@ -24,16 +24,19 @@ export const ProjectIssuesMobileHeader = observer(() => {
   // i18n
   const { t } = useTranslation();
   const [analyticsModal, setAnalyticsModal] = useState(false);
+  const pathname = usePathname();
   const { workspaceSlug, projectId } = useParams() as {
     workspaceSlug: string;
     projectId: string;
   };
+  const isEpicView = pathname?.includes(`/projects/${projectId}/epics`) ?? false;
+  const storeType = isEpicView ? EIssuesStoreType.EPIC : EIssuesStoreType.PROJECT;
   const { currentProjectDetails } = useProject();
 
   // store hooks
   const {
     issuesFilter: { issueFilters, updateFilters },
-  } = useIssues(EIssuesStoreType.PROJECT);
+  } = useIssues(storeType);
   const activeLayout = issueFilters?.displayFilters?.layout;
 
   const handleLayoutChange = useCallback(

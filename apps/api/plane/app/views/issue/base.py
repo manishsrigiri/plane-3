@@ -55,6 +55,7 @@ from plane.db.models import (
     ModuleIssue,
     Project,
     ProjectMember,
+    IssueType,
     UserRecentVisit,
 )
 from plane.utils.filters import ComplexFilterBackend, IssueFilterSet
@@ -77,6 +78,14 @@ class IssueListEndpoint(BaseAPIView):
     filter_backends = (ComplexFilterBackend,)
     filterset_class = IssueFilterSet
 
+    def _is_epic_request(self):
+        return bool(self.kwargs.get("is_epic", False))
+
+    def _issue_type_filter(self):
+        if self._is_epic_request():
+            return Q(type__is_epic=True)
+        return Q(type__isnull=True) | Q(type__is_epic=False)
+
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST])
     def get(self, request, slug, project_id):
         issue_ids = request.GET.get("issues", False)
@@ -87,7 +96,11 @@ class IssueListEndpoint(BaseAPIView):
         issue_ids = [issue_id for issue_id in issue_ids.split(",") if issue_id != ""]
 
         # Base queryset with basic filters
-        queryset = Issue.issue_objects.filter(workspace__slug=slug, project_id=project_id, pk__in=issue_ids)
+        queryset = Issue.issue_objects.filter(
+            workspace__slug=slug,
+            project_id=project_id,
+            pk__in=issue_ids,
+        ).filter(self._issue_type_filter())
 
         # Apply filtering from filterset
         queryset = self.filter_queryset(queryset)
@@ -198,11 +211,39 @@ class IssueViewSet(BaseViewSet):
     def get_serializer_class(self):
         return IssueCreateSerializer if self.action in ["create", "update", "partial_update"] else IssueSerializer
 
+    def _is_epic_request(self):
+        return bool(self.kwargs.get("is_epic", False))
+
+    def _issue_type_filter(self):
+        if self._is_epic_request():
+            return Q(type__is_epic=True)
+        return Q(type__isnull=True) | Q(type__is_epic=False)
+
+    def _get_or_create_epic_type(self, project_id, workspace_id):
+        issue_type = (
+            IssueType.objects.filter(
+                project_issue_types__project_id=project_id,
+                is_epic=True,
+                is_active=True,
+            )
+            .order_by("created_at")
+            .first()
+        )
+        if issue_type:
+            return issue_type
+
+        return IssueType.objects.create(
+            workspace_id=workspace_id,
+            name="Epic",
+            is_epic=True,
+            is_default=False,
+        )
+
     def get_queryset(self):
         issues = Issue.issue_objects.filter(
             project_id=self.kwargs.get("project_id"),
             workspace__slug=self.kwargs.get("slug"),
-        ).distinct()
+        ).filter(self._issue_type_filter()).distinct()
 
         return issues
 
@@ -398,7 +439,11 @@ class IssueViewSet(BaseViewSet):
         )
 
         if serializer.is_valid():
-            serializer.save()
+            if self._is_epic_request():
+                epic_type = self._get_or_create_epic_type(project_id, project.workspace_id)
+                serializer.save(type=epic_type)
+            else:
+                serializer.save()
 
             # Track the issue
             issue_activity.delay(
@@ -477,7 +522,7 @@ class IssueViewSet(BaseViewSet):
         project = Project.objects.get(pk=project_id, workspace__slug=slug)
 
         issue = (
-            Issue.objects.filter(
+            self.get_queryset().filter(
                 project_id=self.kwargs.get("project_id"),
                 workspace__slug=self.kwargs.get("slug"),
                 pk=pk,
@@ -690,7 +735,7 @@ class IssueViewSet(BaseViewSet):
 
     @allow_permission([ROLE.ADMIN], creator=True, model=Issue)
     def destroy(self, request, slug, project_id, pk=None):
-        issue = Issue.objects.get(workspace__slug=slug, project_id=project_id, pk=pk)
+        issue = self.get_queryset().get(workspace__slug=slug, project_id=project_id, pk=pk)
 
         issue.delete()
         # delete the issue from recent visits
@@ -779,11 +824,22 @@ class DeletedIssuesListViewSet(BaseAPIView):
 
 
 class IssuePaginatedViewSet(BaseViewSet):
+    def _is_epic_request(self):
+        return bool(self.kwargs.get("is_epic", False))
+
+    def _issue_type_filter(self):
+        if self._is_epic_request():
+            return Q(type__is_epic=True)
+        return Q(type__isnull=True) | Q(type__is_epic=False)
+
     def get_queryset(self):
         workspace_slug = self.kwargs.get("slug")
         project_id = self.kwargs.get("project_id")
 
-        issue_queryset = Issue.issue_objects.filter(workspace__slug=workspace_slug, project_id=project_id)
+        issue_queryset = Issue.issue_objects.filter(
+            workspace__slug=workspace_slug,
+            project_id=project_id,
+        ).filter(self._issue_type_filter())
 
         return (
             issue_queryset.select_related("state")
@@ -866,7 +922,9 @@ class IssuePaginatedViewSet(BaseViewSet):
             required_fields.append("description_html")
 
         # querying issues
-        base_queryset = Issue.issue_objects.filter(workspace__slug=slug, project_id=project_id)
+        base_queryset = Issue.issue_objects.filter(workspace__slug=slug, project_id=project_id).filter(
+            self._issue_type_filter()
+        )
 
         base_queryset = base_queryset.order_by("updated_at")
         queryset = self.get_queryset().order_by("updated_at")
@@ -941,6 +999,14 @@ class IssueDetailEndpoint(BaseAPIView):
     filter_backends = (ComplexFilterBackend,)
     filterset_class = IssueFilterSet
 
+    def _is_epic_request(self):
+        return bool(self.kwargs.get("is_epic", False))
+
+    def _issue_type_filter(self):
+        if self._is_epic_request():
+            return Q(type__is_epic=True)
+        return Q(type__isnull=True) | Q(type__is_epic=False)
+
     def apply_annotations(self, issues):
         return (
             issues.annotate(
@@ -997,6 +1063,7 @@ class IssueDetailEndpoint(BaseAPIView):
         #  if it is true then show all the issues else show only the issues created by the user
         permission_subquery = (
             Issue.issue_objects.filter(workspace__slug=slug, project_id=project_id, id=OuterRef("id"))
+            .filter(self._issue_type_filter())
             .filter(
                 Q(
                     project__project_projectmember__member=self.request.user,
@@ -1021,6 +1088,7 @@ class IssueDetailEndpoint(BaseAPIView):
         )
         # Main issue query
         issue = Issue.issue_objects.filter(workspace__slug=slug, project_id=project_id).filter(
+            self._issue_type_filter(),
             Exists(permission_subquery)
         )
 

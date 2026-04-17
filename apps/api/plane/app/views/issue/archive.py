@@ -53,6 +53,9 @@ class IssueArchiveViewSet(BaseViewSet):
     filter_backends = (ComplexFilterBackend,)
     filterset_class = IssueFilterSet
 
+    def _is_epic_request(self):
+        return bool(self.kwargs.get("is_epic", False))
+
     def apply_annotations(self, issues):
         return (
             issues.annotate(
@@ -91,8 +94,10 @@ class IssueArchiveViewSet(BaseViewSet):
         )
 
     def get_queryset(self):
+        issue_type_filter = Q(type__is_epic=True) if self._is_epic_request() else (Q(type__isnull=True) | Q(type__is_epic=False))
+
         return (
-            Issue.objects.filter(Q(type__isnull=True) | Q(type__is_epic=False))
+            Issue.objects.filter(issue_type_filter)
             .filter(archived_at__isnull=False)
             .filter(project_id=self.kwargs.get("project_id"))
             .filter(workspace__slug=self.kwargs.get("slug"))

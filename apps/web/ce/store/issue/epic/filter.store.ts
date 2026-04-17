@@ -2,15 +2,24 @@ import type { IProjectIssuesFilter } from "@/store/issue/project";
 import { ProjectIssuesFilter } from "@/store/issue/project";
 import type { IIssueRootStore } from "@/store/issue/root.store";
 
-// @ts-nocheck - This class will never be used, extending similar class to avoid type errors
 export type IProjectEpicsFilter = IProjectIssuesFilter;
 
-// @ts-nocheck - This class will never be used, extending similar class to avoid type errors
 export class ProjectEpicsFilter extends ProjectIssuesFilter implements IProjectEpicsFilter {
-  constructor(_rootStore: IIssueRootStore) {
-    super(_rootStore);
+  constructor(rootStore: IIssueRootStore) {
+    super(rootStore);
+  }
 
-    // root store
-    this.rootIssueStore = _rootStore;
+  override updateFilterExpression: IProjectEpicsFilter["updateFilterExpression"] = async (
+    workspaceSlug,
+    projectId,
+    filters
+  ) => {
+    await super.updateFilterExpression(workspaceSlug, projectId, filters);
+    await this.rootIssueStore.projectEpics.fetchIssuesWithExistingPagination(workspaceSlug, projectId, "mutation");
+  };
+
+  override updateFilters: IProjectEpicsFilter["updateFilters"] = async (workspaceSlug, projectId, type, filters) => {
+    await super.updateFilters(workspaceSlug, projectId, type, filters);
+    await this.rootIssueStore.projectEpics.fetchIssuesWithExistingPagination(workspaceSlug, projectId, "mutation");
   }
 }

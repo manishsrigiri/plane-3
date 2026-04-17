@@ -1,7 +1,7 @@
 "use client";
 
 import { observer } from "mobx-react";
-import { useParams } from "next/navigation";
+import { useParams, usePathname } from "next/navigation";
 // icons
 import { Circle, ExternalLink } from "lucide-react";
 // plane imports
@@ -37,10 +37,13 @@ export const IssuesHeader = observer(() => {
   // router
   const router = useAppRouter();
   const { workspaceSlug, projectId } = useParams() as { workspaceSlug: string; projectId: string };
+  const pathname = usePathname();
+  const isEpicView = pathname?.includes(`/projects/${projectId}/epics`) ?? false;
+  const storeType = isEpicView ? EIssuesStoreType.EPIC : EIssuesStoreType.PROJECT;
   // store hooks
   const {
     issues: { getGroupIssueCount },
-  } = useIssues(EIssuesStoreType.PROJECT);
+  } = useIssues(storeType);
   // i18n
   const { t } = useTranslation();
 
@@ -74,7 +77,7 @@ export const IssuesHeader = observer(() => {
           {issuesCount && issuesCount > 0 ? (
             <Tooltip
               isMobile={isMobile}
-              tooltipContent={`There are ${issuesCount} ${issuesCount > 1 ? "work items" : "work item"} in this project`}
+              tooltipContent={`There are ${issuesCount} ${issuesCount > 1 ? (isEpicView ? "epics" : "work items") : isEpicView ? "epic" : "work item"} in this project`}
               position="bottom"
             >
               <CountChip count={issuesCount} />
@@ -108,13 +111,13 @@ export const IssuesHeader = observer(() => {
         {canUserCreateIssue ? (
           <Button
             onClick={() => {
-              toggleCreateIssueModal(true, EIssuesStoreType.PROJECT);
+              toggleCreateIssueModal(true, storeType);
             }}
             data-ph-element={WORK_ITEM_TRACKER_ELEMENTS.HEADER_ADD_BUTTON.WORK_ITEMS}
             size="sm"
           >
-            <div className="block sm:hidden">{t("issue.label", { count: 1 })}</div>
-            <div className="hidden sm:block">{t("issue.add.label")}</div>
+            <div className="block sm:hidden">{isEpicView ? t("epic.label", { count: 1 }) : t("issue.label", { count: 1 })}</div>
+            <div className="hidden sm:block">{isEpicView ? t("epic.add.label") : t("issue.add.label")}</div>
           </Button>
         ) : (
           <></>

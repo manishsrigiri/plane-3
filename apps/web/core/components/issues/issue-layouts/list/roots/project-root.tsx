@@ -9,7 +9,8 @@ import { useUserPermissions } from "@/hooks/store/user";
 import { ProjectIssueQuickActions } from "../../quick-action-dropdowns";
 import { BaseListRoot } from "../base-list-root";
 
-export const ListLayout: FC = observer(() => {
+export const ListLayout: FC<{ isEpic?: boolean }> = observer((props) => {
+  const { isEpic = false } = props;
   // router
   const { workspaceSlug } = useParams();
   // hooks
@@ -29,6 +30,7 @@ export const ListLayout: FC = observer(() => {
     <BaseListRoot
       QuickActions={ProjectIssueQuickActions}
       canEditPropertiesBasedOnProject={canEditPropertiesBasedOnProject}
+      isEpic={isEpic}
     />
   );
 });

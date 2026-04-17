@@ -7,7 +7,7 @@ import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { EUserPermissionsLevel, EUserPermissions } from "@plane/constants";
 import { useTranslation } from "@plane/i18n";
-import { CycleIcon, IntakeIcon, ModuleIcon, PageIcon, ViewsIcon, WorkItemsIcon } from "@plane/propel/icons";
+import { CycleIcon, EpicIcon, IntakeIcon, ModuleIcon, PageIcon, ViewsIcon, WorkItemsIcon } from "@plane/propel/icons";
 import type { EUserProjectRoles } from "@plane/types";
 // plane ui
 // components
@@ -76,6 +76,16 @@ export const ProjectNavigation: FC<TProjectItemsProps> = observer((props) => {
         sortOrder: 1,
       },
       {
+        i18n_key: "common.epics",
+        key: "epics",
+        name: "Epics",
+        href: `/${workspaceSlug}/projects/${projectId}/epics`,
+        icon: EpicIcon,
+        access: [EUserPermissions.ADMIN, EUserPermissions.MEMBER, EUserPermissions.GUEST],
+        shouldRender: true,
+        sortOrder: 2,
+      },
+      {
         i18n_key: "sidebar.cycles",
         key: "cycles",
         name: "Cycles",
@@ -83,7 +93,7 @@ export const ProjectNavigation: FC<TProjectItemsProps> = observer((props) => {
         icon: CycleIcon,
         access: [EUserPermissions.ADMIN, EUserPermissions.MEMBER],
         shouldRender: project.cycle_view,
-        sortOrder: 2,
+        sortOrder: 3,
       },
       {
         i18n_key: "sidebar.modules",
@@ -93,7 +103,7 @@ export const ProjectNavigation: FC<TProjectItemsProps> = observer((props) => {
         icon: ModuleIcon,
         access: [EUserPermissions.ADMIN, EUserPermissions.MEMBER],
         shouldRender: project.module_view,
-        sortOrder: 3,
+        sortOrder: 4,
       },
       {
         i18n_key: "sidebar.views",
@@ -103,7 +113,7 @@ export const ProjectNavigation: FC<TProjectItemsProps> = observer((props) => {
         icon: ViewsIcon,
         access: [EUserPermissions.ADMIN, EUserPermissions.MEMBER, EUserPermissions.GUEST],
         shouldRender: project.issue_views_view,
-        sortOrder: 4,
+        sortOrder: 5,
       },
       {
         i18n_key: "sidebar.pages",
@@ -113,7 +123,7 @@ export const ProjectNavigation: FC<TProjectItemsProps> = observer((props) => {
         icon: PageIcon,
         access: [EUserPermissions.ADMIN, EUserPermissions.MEMBER, EUserPermissions.GUEST],
         shouldRender: project.page_view,
-        sortOrder: 5,
+        sortOrder: 6,
       },
       {
         i18n_key: "sidebar.intake",
@@ -123,7 +133,7 @@ export const ProjectNavigation: FC<TProjectItemsProps> = observer((props) => {
         icon: IntakeIcon,
         access: [EUserPermissions.ADMIN, EUserPermissions.MEMBER, EUserPermissions.GUEST],
         shouldRender: project.inbox_view,
-        sortOrder: 6,
+        sortOrder: 7,
       },
     ],
     [project]

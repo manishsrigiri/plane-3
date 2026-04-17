@@ -8,7 +8,8 @@ import { useUserPermissions } from "@/hooks/store/user";
 import { ProjectIssueQuickActions } from "../../quick-action-dropdowns";
 import { BaseCalendarRoot } from "../base-calendar-root";
 
-export const CalendarLayout: React.FC = observer(() => {
+export const CalendarLayout: React.FC<{ isEpic?: boolean }> = observer((props) => {
+  const { isEpic = false } = props;
   // router
   const { workspaceSlug } = useParams();
   // hooks
@@ -26,6 +27,7 @@ export const CalendarLayout: React.FC = observer(() => {
     <BaseCalendarRoot
       QuickActions={ProjectIssueQuickActions}
       canEditPropertiesBasedOnProject={canEditPropertiesBasedOnProject}
+      isEpic={isEpic}
     />
   );
 });

@@ -8,7 +8,8 @@ import { useUserPermissions } from "@/hooks/store/user";
 import { ProjectIssueQuickActions } from "../../quick-action-dropdowns";
 import { BaseKanBanRoot } from "../base-kanban-root";
 
-export const KanBanLayout: React.FC = observer(() => {
+export const KanBanLayout: React.FC<{ isEpic?: boolean }> = observer((props) => {
+  const { isEpic = false } = props;
   // router
   const { workspaceSlug } = useParams();
   // hooks
@@ -26,6 +27,7 @@ export const KanBanLayout: React.FC = observer(() => {
     <BaseKanBanRoot
       QuickActions={ProjectIssueQuickActions}
       canEditPropertiesBasedOnProject={canEditPropertiesBasedOnProject}
+      isEpic={isEpic}
     />
   );
 });

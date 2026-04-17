@@ -8,6 +8,7 @@ import type {
   TIssuesResponse,
   TBulkOperationsPayload,
 } from "@plane/types";
+import { EIssueServiceType } from "@plane/types";
 // helpers
 // base class
 import type { IBaseIssuesStore } from "../helpers/base-issues.store";
@@ -57,8 +58,12 @@ export class ProjectIssues extends BaseIssuesStore implements IProjectIssues {
   // filter store
   issueFilterStore: IProjectIssuesFilter;
 
-  constructor(_rootStore: IIssueRootStore, issueFilterStore: IProjectIssuesFilter) {
-    super(_rootStore, issueFilterStore);
+  constructor(
+    _rootStore: IIssueRootStore,
+    issueFilterStore: IProjectIssuesFilter,
+    serviceType: EIssueServiceType = EIssueServiceType.ISSUES
+  ) {
+    super(_rootStore, issueFilterStore, false, serviceType);
     makeObservable(this, {
       fetchIssues: action,
       fetchNextIssues: action,

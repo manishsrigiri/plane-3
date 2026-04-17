@@ -9,7 +9,8 @@ import { useUserPermissions } from "@/hooks/store/user";
 import { ProjectIssueQuickActions } from "../../quick-action-dropdowns";
 import { BaseSpreadsheetRoot } from "../base-spreadsheet-root";
 
-export const ProjectSpreadsheetLayout: React.FC = observer(() => {
+export const ProjectSpreadsheetLayout: React.FC<{ isEpic?: boolean }> = observer((props) => {
+  const { isEpic = false } = props;
   // router
   const { workspaceSlug } = useParams();
   // hooks
@@ -27,6 +28,7 @@ export const ProjectSpreadsheetLayout: React.FC = observer(() => {
     <BaseSpreadsheetRoot
       QuickActions={ProjectIssueQuickActions}
       canEditPropertiesBasedOnProject={canEditPropertiesBasedOnProject}
+      isEpic={isEpic}
     />
   );
 });
