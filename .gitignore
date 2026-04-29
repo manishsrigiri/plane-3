@@ -102,3 +102,6 @@ dev-editor
 storybook-static
 
 CLAUDE.md
+
+# Claude Code local config
+.claude/
