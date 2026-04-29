@@ -37,14 +37,26 @@ export default defineConfig({
   outDir: "dist",
   format: ["esm", "cjs"],
   exports: {
-    customExports: (out) => ({
-      ...out,
-      "./styles/fonts": "./dist/styles/fonts/index.css",
-      "./styles/react-day-picker": "./dist/styles/react-day-picker.css",
-    }),
+    customExports: (out) => {
+      const withTypes = Object.fromEntries(
+        Object.entries(out).map(([key, value]) => {
+          if (value && typeof value === "object" && "import" in value) {
+            const importPath = value.import as string;
+            return [key, { types: importPath.replace(/\/index\.mjs$/, "/index.d.mts"), ...value }];
+          }
+          return [key, value];
+        })
+      );
+      return {
+        ...withTypes,
+        "./styles/fonts": "./dist/styles/fonts/index.css",
+        "./styles/react-day-picker": "./dist/styles/react-day-picker.css",
+      };
+    },
   },
   copy: ["src/styles"],
   dts: true,
   clean: true,
   sourcemap: false,
+  ignoreWatch: ["**/.turbo/**", "**/dist/**", "**/node_modules/**"],
 });

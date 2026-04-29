@@ -23,7 +23,7 @@ class IssueActivityEndpoint(BaseAPIView):
 
     @method_decorator(gzip_page)
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST])
-    def get(self, request, slug, project_id, issue_id):
+    def get(self, request, slug, project_id, issue_id, **kwargs):
         filters = {}
         if request.GET.get("created_at__gt", None) is not None:
             filters = {"created_at__gt": request.GET.get("created_at__gt")}

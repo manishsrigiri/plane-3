@@ -17,7 +17,6 @@ import { CreateUpdateIssueModal } from "@/components/issues/issue-modal/modal";
 // constants
 import { captureClick } from "@/helpers/event-tracker.helper";
 import { useIssueStoreType } from "@/hooks/use-issue-layout-store";
-import { CreateUpdateEpicModal } from "@/plane-web/components/epics/epic-modal";
 // types
 // Plane-web
 import { WorkFlowGroupTree } from "@/plane-web/components/workflow";
@@ -88,16 +87,12 @@ export const HeaderGroupByCard: FC<IHeaderGroupByCard> = observer((props) => {
 
   return (
     <>
-      {isEpic ? (
-        <CreateUpdateEpicModal isOpen={isOpen} onClose={() => setIsOpen(false)} data={issuePayload} />
-      ) : (
-        <CreateUpdateIssueModal
-          isOpen={isOpen}
-          onClose={() => setIsOpen(false)}
-          data={issuePayload}
-          storeType={storeType}
-        />
-      )}
+      <CreateUpdateIssueModal
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+        data={issuePayload}
+        storeType={storeType}
+      />
 
       {renderExistingIssueModal && (
         <ExistingIssuesListModal

@@ -19,8 +19,6 @@ import { CreateUpdateIssueModal } from "@/components/issues/issue-modal/modal";
 import { captureClick } from "@/helpers/event-tracker.helper";
 import { useIssueStoreType } from "@/hooks/use-issue-layout-store";
 import type { TSelectionHelper } from "@/hooks/use-multiple-select";
-// plane-web
-import { CreateUpdateEpicModal } from "@/plane-web/components/epics/epic-modal";
 // Plane-web
 import { WorkFlowGroupTree } from "@/plane-web/components/workflow";
 
@@ -160,16 +158,12 @@ export const HeaderGroupByCard = observer((props: IHeaderGroupByCard) => {
             </div>
           ))}
 
-        {isEpic ? (
-          <CreateUpdateEpicModal isOpen={isOpen} onClose={() => setIsOpen(false)} data={issuePayload} />
-        ) : (
-          <CreateUpdateIssueModal
-            isOpen={isOpen}
-            onClose={() => setIsOpen(false)}
-            data={issuePayload}
-            storeType={storeType}
-          />
-        )}
+        <CreateUpdateIssueModal
+          isOpen={isOpen}
+          onClose={() => setIsOpen(false)}
+          data={issuePayload}
+          storeType={storeType}
+        />
 
         {renderExistingIssueModal && (
           <ExistingIssuesListModal

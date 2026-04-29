@@ -101,7 +101,7 @@ export const PLANS_COMPARISON_LIST: TPlansComparisonDetails[] = [
         },
       },
       {
-        title: "Cycles",
+        title: "Sprints",
         description: "Track work in timeboxes with differing frequency.",
         cloud: {
           free: true,

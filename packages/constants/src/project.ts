@@ -152,6 +152,7 @@ export const DEFAULT_PROJECT_FORM_VALUES: Partial<IProject> = {
 
 export enum EProjectFeatureKey {
   WORK_ITEMS = "work_items",
+  EPICS = "epics",
   CYCLES = "cycles",
   MODULES = "modules",
   VIEWS = "views",

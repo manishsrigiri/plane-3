@@ -57,7 +57,7 @@ class IssueCommentViewSet(BaseViewSet):
         )
 
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST])
-    def create(self, request, slug, project_id, issue_id):
+    def create(self, request, slug, project_id, issue_id, **kwargs):
         project = Project.objects.get(pk=project_id)
         issue = Issue.objects.get(pk=issue_id)
         if (
@@ -103,7 +103,7 @@ class IssueCommentViewSet(BaseViewSet):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @allow_permission(allowed_roles=[ROLE.ADMIN], creator=True, model=IssueComment)
-    def partial_update(self, request, slug, project_id, issue_id, pk):
+    def partial_update(self, request, slug, project_id, issue_id, pk, **kwargs):
         issue_comment = IssueComment.objects.get(workspace__slug=slug, project_id=project_id, issue_id=issue_id, pk=pk)
         requested_data = json.dumps(self.request.data, cls=DjangoJSONEncoder)
         current_instance = json.dumps(IssueCommentSerializer(issue_comment).data, cls=DjangoJSONEncoder)
@@ -138,7 +138,7 @@ class IssueCommentViewSet(BaseViewSet):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @allow_permission(allowed_roles=[ROLE.ADMIN], creator=True, model=IssueComment)
-    def destroy(self, request, slug, project_id, issue_id, pk):
+    def destroy(self, request, slug, project_id, issue_id, pk, **kwargs):
         issue_comment = IssueComment.objects.get(workspace__slug=slug, project_id=project_id, issue_id=issue_id, pk=pk)
         current_instance = json.dumps(IssueCommentSerializer(issue_comment).data, cls=DjangoJSONEncoder)
         issue_comment.delete()

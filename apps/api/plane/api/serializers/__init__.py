@@ -22,6 +22,7 @@ from .issue import (
     IssueLinkCreateSerializer,
     IssueLinkUpdateSerializer,
 )
+from .epic import EpicSerializer
 from .state import StateLiteSerializer, StateSerializer
 from .cycle import (
     CycleSerializer,

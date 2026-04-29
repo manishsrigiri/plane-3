@@ -41,7 +41,7 @@ class IssueLinkViewSet(BaseViewSet):
             .distinct()
         )
 
-    def create(self, request, slug, project_id, issue_id):
+    def create(self, request, slug, project_id, issue_id, **kwargs):
         serializer = IssueLinkSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save(project_id=project_id, issue_id=issue_id)
@@ -64,7 +64,7 @@ class IssueLinkViewSet(BaseViewSet):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def partial_update(self, request, slug, project_id, issue_id, pk):
+    def partial_update(self, request, slug, project_id, issue_id, pk, **kwargs):
         issue_link = IssueLink.objects.get(workspace__slug=slug, project_id=project_id, issue_id=issue_id, pk=pk)
         requested_data = json.dumps(request.data, cls=DjangoJSONEncoder)
         current_instance = json.dumps(IssueLinkSerializer(issue_link).data, cls=DjangoJSONEncoder)
@@ -91,7 +91,7 @@ class IssueLinkViewSet(BaseViewSet):
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def destroy(self, request, slug, project_id, issue_id, pk):
+    def destroy(self, request, slug, project_id, issue_id, pk, **kwargs):
         issue_link = IssueLink.objects.get(workspace__slug=slug, project_id=project_id, issue_id=issue_id, pk=pk)
         current_instance = json.dumps(IssueLinkSerializer(issue_link).data, cls=DjangoJSONEncoder)
         issue_activity.delay(

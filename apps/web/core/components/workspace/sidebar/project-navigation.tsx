@@ -5,7 +5,7 @@ import React, { useCallback, useMemo } from "react";
 import { observer } from "mobx-react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
-import { EUserPermissionsLevel, EUserPermissions } from "@plane/constants";
+import { EUserPermissionsLevel, EUserPermissions, EProjectFeatureKey } from "@plane/constants";
 import { useTranslation } from "@plane/i18n";
 import { CycleIcon, EpicIcon, IntakeIcon, ModuleIcon, PageIcon, ViewsIcon, WorkItemsIcon } from "@plane/propel/icons";
 import type { EUserProjectRoles } from "@plane/types";
@@ -77,7 +77,7 @@ export const ProjectNavigation: FC<TProjectItemsProps> = observer((props) => {
       },
       {
         i18n_key: "common.epics",
-        key: "epics",
+        key: EProjectFeatureKey.EPICS,
         name: "Epics",
         href: `/${workspaceSlug}/projects/${projectId}/epics`,
         icon: EpicIcon,
@@ -88,7 +88,7 @@ export const ProjectNavigation: FC<TProjectItemsProps> = observer((props) => {
       {
         i18n_key: "sidebar.cycles",
         key: "cycles",
-        name: "Cycles",
+        name: "Sprints",
         href: `/${workspaceSlug}/projects/${projectId}/cycles`,
         icon: CycleIcon,
         access: [EUserPermissions.ADMIN, EUserPermissions.MEMBER],
@@ -166,8 +166,8 @@ export const ProjectNavigation: FC<TProjectItemsProps> = observer((props) => {
       // epic condition
       const epicCondition = workItemId && workItem && workItem?.is_epic && workItem?.project_id === projectId;
       // is active
-      const isWorkItemActive = item.key === "work_items" && workItemCondition;
-      const isEpicActive = item.key === "epics" && epicCondition;
+      const isWorkItemActive = item.key === EProjectFeatureKey.WORK_ITEMS && workItemCondition;
+      const isEpicActive = item.key === EProjectFeatureKey.EPICS && epicCondition;
       // pathname condition
       const isPathnameActive = pathname.includes(item.href);
       // return

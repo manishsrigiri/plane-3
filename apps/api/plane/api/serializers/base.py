@@ -32,7 +32,7 @@ class BaseSerializer(serializers.ModelSerializer):
         :param fields: List or dictionary specifying which
         fields to include in the serializer.
         :return: The updated fields for the serializer.
-        """`
+        """
         # Check each field_name in the provided fields.
         for field_name in fields:
             # If the field is a dictionary (indicating nested fields),

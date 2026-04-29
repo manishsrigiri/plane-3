@@ -116,6 +116,13 @@ class Issue(ProjectBaseModel):
         blank=True,
         related_name="parent_issue",
     )
+    epic = models.ForeignKey(
+        "self",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="epic_issues",
+    )
     state = models.ForeignKey(
         "db.State",
         on_delete=models.CASCADE,

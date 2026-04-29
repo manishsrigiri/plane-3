@@ -85,6 +85,7 @@ export const IssueMainContent: React.FC<Props> = observer((props) => {
   if (!issue || !issue.project_id) return <></>;
 
   const isPeekModeActive = Boolean(peekIssue);
+  const issueDetailServiceType = issue.is_epic ? EIssueServiceType.EPICS : EIssueServiceType.ISSUES;
 
   return (
     <>
@@ -180,7 +181,7 @@ export const IssueMainContent: React.FC<Props> = observer((props) => {
         issueId={issueId}
         disabled={!isEditable || isArchived}
         renderWidgetModals={!isPeekModeActive}
-        issueServiceType={EIssueServiceType.ISSUES}
+        issueServiceType={issueDetailServiceType}
       />
 
       {windowSize[0] < 768 && (

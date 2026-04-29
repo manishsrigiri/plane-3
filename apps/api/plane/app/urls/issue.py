@@ -140,6 +140,17 @@ urlpatterns = [
         IssueAttachmentV2Endpoint.as_view(),
         name="project-issue-attachments",
     ),
+    # V2 Epic Attachments
+    path(
+        "assets/v2/workspaces/<str:slug>/projects/<uuid:project_id>/epics/<uuid:issue_id>/attachments/",
+        IssueAttachmentV2Endpoint.as_view(),
+        name="project-epic-attachments",
+    ),
+    path(
+        "assets/v2/workspaces/<str:slug>/projects/<uuid:project_id>/epics/<uuid:issue_id>/attachments/<uuid:pk>/",
+        IssueAttachmentV2Endpoint.as_view(),
+        name="project-epic-attachments",
+    ),
     ## End Issues
     ## Issue Activity
     path(
@@ -435,5 +446,22 @@ urlpatterns += [
         IssueUserDisplayPropertyEndpoint.as_view(),
         {"is_epic": True},
         name="project-epic-display-properties",
+    ),
+    path(
+        "workspaces/<str:slug>/projects/<uuid:project_id>/bulk-delete-epics/",
+        BulkDeleteIssuesEndpoint.as_view(),
+        {"is_epic": True},
+        name="bulk-delete-epics",
+    ),
+    path(
+        "workspaces/<str:slug>/projects/<uuid:project_id>/deleted-epics/",
+        DeletedIssuesListViewSet.as_view(),
+        {"is_epic": True},
+        name="deleted-epics",
+    ),
+    path(
+        "workspaces/<str:slug>/projects/<uuid:project_id>/epics/<uuid:issue_id>/meta/",
+        IssueMetaEndpoint.as_view(),
+        name="epic-meta",
     ),
 ]

@@ -45,6 +45,12 @@ from .module import (
 
 from .member import ProjectMemberAPIEndpoint, WorkspaceMemberAPIEndpoint
 
+from .epic import (
+    EpicListCreateAPIView,
+    EpicDetailAPIView,
+    EpicIssuesAPIView,
+)
+
 from .intake import (
     IntakeIssueListCreateAPIEndpoint,
     IntakeIssueDetailAPIEndpoint,

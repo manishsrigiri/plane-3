@@ -5,12 +5,8 @@ export default defineConfig({
   outDir: "dist",
   format: ["esm", "cjs"],
   copy: ["src/styles"],
-  exports: {
-    customExports: (out) => ({
-      ...out,
-      "./styles": "./dist/styles/index.css",
-    }),
-  },
+  exports: false, 
   dts: true,
   clean: true,
+  ignoreWatch: ["**/.turbo/**", "**/dist/**", "**/node_modules/**"],
 });

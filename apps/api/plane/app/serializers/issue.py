@@ -83,6 +83,9 @@ class IssueCreateSerializer(BaseSerializer):
     parent_id = serializers.PrimaryKeyRelatedField(
         source="parent", queryset=Issue.objects.all(), required=False, allow_null=True
     )
+    epic_id = serializers.PrimaryKeyRelatedField(
+        source="epic", queryset=Issue.objects.all(), required=False, allow_null=True
+    )
     label_ids = serializers.ListField(
         child=serializers.PrimaryKeyRelatedField(queryset=Label.objects.all()),
         write_only=True,
@@ -167,7 +170,7 @@ class IssueCreateSerializer(BaseSerializer):
         ):
             raise serializers.ValidationError("State is not valid please pass a valid state_id")
 
-        # Check parent issue is from workspace as it can be cross workspace
+        # Validate parent is in the same project
         if (
             attrs.get("parent")
             and not Issue.objects.filter(
@@ -176,6 +179,32 @@ class IssueCreateSerializer(BaseSerializer):
             ).exists()
         ):
             raise serializers.ValidationError("Parent is not valid issue_id please pass a valid issue_id")
+
+        # Validate epic_id — must be a real epic in the same project
+        epic = attrs.get("epic")
+        if epic:
+            if not Issue.objects.filter(
+                pk=epic.id,
+                project_id=self.context.get("project_id"),
+                type__is_epic=True,
+            ).exists():
+                raise serializers.ValidationError(
+                    {"epic_id": "The referenced issue is not a valid Epic in this project."}
+                )
+
+        # Hierarchy rules: Epic → Task → Subtask (max 3 levels)
+        parent = attrs.get("parent")
+        if parent and parent.parent_id is not None:
+            # parent already has a parent — allow only if that grandparent is an Epic
+            # (meaning parent is a Task under an Epic, so this new issue is a Subtask — OK)
+            grandparent_is_epic = Issue.objects.filter(
+                pk=parent.parent_id,
+                type__is_epic=True,
+            ).exists()
+            if not grandparent_is_epic:
+                raise serializers.ValidationError(
+                    {"parent_id": "Subtasks cannot have their own subtasks. Allowed structure: Epic → Task → Subtask."}
+                )
 
         if (
             attrs.get("estimate_point")
@@ -766,6 +795,7 @@ class IssueSerializer(DynamicBaseSerializer):
             "sequence_id",
             "project_id",
             "parent_id",
+            "epic_id",
             "cycle_id",
             "module_ids",
             "label_ids",
@@ -815,6 +845,7 @@ class IssueListDetailSerializer(serializers.Serializer):
             "sequence_id": instance.sequence_id,
             "project_id": instance.project_id,
             "parent_id": instance.parent_id,
+            "epic_id": instance.epic_id,
             "created_at": instance.created_at,
             "updated_at": instance.updated_at,
             "created_by": instance.created_by_id,

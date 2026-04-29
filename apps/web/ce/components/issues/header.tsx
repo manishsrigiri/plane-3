@@ -70,7 +70,7 @@ export const IssuesHeader = observer(() => {
             <CommonProjectBreadcrumbs
               workspaceSlug={workspaceSlug?.toString()}
               projectId={projectId?.toString()}
-              featureKey={EProjectFeatureKey.WORK_ITEMS}
+              featureKey={isEpicView ? EProjectFeatureKey.EPICS : EProjectFeatureKey.WORK_ITEMS}
               isLast
             />
           </Breadcrumbs>

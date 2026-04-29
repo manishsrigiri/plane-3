@@ -42,6 +42,7 @@ export const IssueLevelModals: FC<TIssueLevelModalsProps> = observer((props) => 
     isBulkDeleteIssueModalOpen,
     toggleBulkDeleteIssueModal,
     createWorkItemAllowedProjectIds,
+    createIssueStoreType,
   } = useCommandPalette();
   // derived values
   const issueDetails = issueId ? getIssueById(issueId) : undefined;
@@ -82,6 +83,7 @@ export const IssueLevelModals: FC<TIssueLevelModalsProps> = observer((props) => 
         data={getCreateIssueModalData()}
         onSubmit={handleCreateIssueSubmit}
         allowedProjectIds={createWorkItemAllowedProjectIds}
+        storeType={createIssueStoreType}
       />
       {workspaceSlug && projectId && issueId && issueDetails && (
         <DeleteIssueModal

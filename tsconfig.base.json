@@ -1,0 +1,20 @@
+{
+  "compilerOptions": 
+  {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "Node",
+    "baseUrl": ".",
+    "paths": {
+      "@plane/ui": ["packages/ui/src"],
+      "@plane/constants": ["packages/constants/src"],
+      "@plane/utils": ["packages/utils/src"],
+      "@plane/types": ["packages/types/src"],
+      "@plane/hooks": ["packages/hooks/src"]
+    },
+    "jsx": "react-jsx",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true
+  }
+}

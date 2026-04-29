@@ -30,7 +30,7 @@ class SubIssuesEndpoint(BaseAPIView):
     permission_classes = [ProjectEntityPermission]
 
     @method_decorator(gzip_page)
-    def get(self, request, slug, project_id, issue_id):
+    def get(self, request, slug, project_id, issue_id, **kwargs):
         sub_issues = (
             Issue.issue_objects.filter(parent_id=issue_id, workspace__slug=slug)
             .select_related("workspace", "project", "state", "parent")
@@ -124,6 +124,7 @@ class SubIssuesEndpoint(BaseAPIView):
             "sequence_id",
             "project_id",
             "parent_id",
+            "epic_id",
             "cycle_id",
             "module_ids",
             "label_ids",
@@ -166,8 +167,9 @@ class SubIssuesEndpoint(BaseAPIView):
         )
 
     # Assign multiple sub issues
-    def post(self, request, slug, project_id, issue_id):
-        parent_issue = Issue.issue_objects.get(pk=issue_id)
+    def post(self, request, slug, project_id, issue_id, **kwargs):
+        is_epic = kwargs.get("is_epic", False)
+        parent_issue = Issue.issue_objects.select_related("type").get(pk=issue_id)
         sub_issue_ids = request.data.get("sub_issue_ids", [])
 
         if not len(sub_issue_ids):
@@ -176,11 +178,21 @@ class SubIssuesEndpoint(BaseAPIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        # Hierarchy guard: subtasks (depth 2) cannot receive their own sub-issues
+        if not is_epic and parent_issue.parent_id is not None:
+            grandparent_is_epic = Issue.objects.filter(
+                pk=parent_issue.parent_id, type__is_epic=True
+            ).exists()
+            if not grandparent_is_epic:
+                return Response(
+                    {"error": "Subtasks cannot have their own subtasks. Allowed structure: Epic → Task → Subtask."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
         sub_issues = Issue.issue_objects.filter(id__in=sub_issue_ids)
 
         for sub_issue in sub_issues:
             sub_issue.parent = parent_issue
-
         _ = Issue.objects.bulk_update(sub_issues, ["parent"], batch_size=10)
 
         updated_sub_issues = Issue.issue_objects.filter(id__in=sub_issue_ids).annotate(state_group=F("state__group"))

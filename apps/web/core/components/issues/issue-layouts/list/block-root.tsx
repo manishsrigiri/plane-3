@@ -159,7 +159,6 @@ export const IssueBlockRoot: FC<Props> = observer((props) => {
       </RenderIfVisible>
 
       {isExpanded &&
-        !isEpic &&
         subIssues?.map((subIssueId) => (
           <IssueBlockRoot
             key={`${subIssueId}`}
@@ -178,6 +177,7 @@ export const IssueBlockRoot: FC<Props> = observer((props) => {
             canDropOverIssue={canDropOverIssue}
             isParentIssueBeingDragged={isParentIssueBeingDragged || isCurrentBlockDragging}
             shouldRenderByDefault={isExpanded}
+            isEpic={false}
           />
         ))}
       {isLastChild && <DropIndicator classNames={"absolute z-[2]"} isVisible={instruction === "DRAG_BELOW"} />}

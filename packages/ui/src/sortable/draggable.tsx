@@ -1,12 +1,12 @@
-import { combine } from "@atlaskit/pragmatic-drag-and-drop/dist/cjs/entry-point/combine.js";
+import { combine } from "@atlaskit/pragmatic-drag-and-drop/combine";
 import {
   draggable,
   dropTargetForElements,
-} from "@atlaskit/pragmatic-drag-and-drop/dist/cjs/entry-point/element/adapter.js";
+} from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
 import {
   attachClosestEdge,
   extractClosestEdge,
-} from "@atlaskit/pragmatic-drag-and-drop-hitbox/dist/cjs/closest-edge.js";
+} from "@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge";
 import { isEqual } from "lodash-es";
 import React, { useEffect, useRef, useState } from "react";
 import { DropIndicator } from "../drop-indicator";
@@ -36,7 +36,7 @@ const Draggable = ({ children, data, className }: Props) => {
         }),
         dropTargetForElements({
           element: el,
-          onDragEnter: (args) => {
+          onDragEnter: (args: any) => {
             setIsDraggedOver(true);
             setClosestEdge(extractClosestEdge(args.self.data));
           },
@@ -44,8 +44,8 @@ const Draggable = ({ children, data, className }: Props) => {
           onDrop: () => {
             setIsDraggedOver(false);
           },
-          canDrop: ({ source }) => !isEqual(source.data, data) && source.data.__uuid__ === data.__uuid__,
-          getData: ({ input, element }) =>
+          canDrop: ({ source }: any) => !isEqual(source.data, data) && source.data.__uuid__ === data.__uuid__,
+          getData: ({ input, element }: any) =>
             attachClosestEdge(data, {
               input,
               element,

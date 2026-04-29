@@ -56,6 +56,7 @@ from plane.db.models import (
     Project,
     ProjectMember,
     IssueType,
+    ProjectIssueType,
     UserRecentVisit,
 )
 from plane.utils.filters import ComplexFilterBackend, IssueFilterSet
@@ -232,12 +233,17 @@ class IssueViewSet(BaseViewSet):
         if issue_type:
             return issue_type
 
-        return IssueType.objects.create(
+        issue_type = IssueType.objects.create(
             workspace_id=workspace_id,
             name="Epic",
             is_epic=True,
             is_default=False,
         )
+        ProjectIssueType.objects.create(
+            project_id=project_id,
+            issue_type=issue_type,
+        )
+        return issue_type
 
     def get_queryset(self):
         issues = Issue.issue_objects.filter(
@@ -287,7 +293,7 @@ class IssueViewSet(BaseViewSet):
 
     @method_decorator(gzip_page)
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST])
-    def list(self, request, slug, project_id):
+    def list(self, request, slug, project_id, **kwargs):
         extra_filters = {}
         if request.GET.get("updated_at__gt", None) is not None:
             extra_filters = {"updated_at__gt": request.GET.get("updated_at__gt")}
@@ -426,7 +432,7 @@ class IssueViewSet(BaseViewSet):
             )
 
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER])
-    def create(self, request, slug, project_id):
+    def create(self, request, slug, project_id, **kwargs):
         project = Project.objects.get(pk=project_id)
 
         serializer = IssueCreateSerializer(
@@ -518,7 +524,7 @@ class IssueViewSet(BaseViewSet):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @allow_permission(allowed_roles=[ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST], creator=True, model=Issue)
-    def retrieve(self, request, slug, project_id, pk=None):
+    def retrieve(self, request, slug, project_id, pk=None, **kwargs):
         project = Project.objects.get(pk=project_id, workspace__slug=slug)
 
         issue = (
@@ -653,7 +659,7 @@ class IssueViewSet(BaseViewSet):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @allow_permission(allowed_roles=[ROLE.ADMIN, ROLE.MEMBER], creator=True, model=Issue)
-    def partial_update(self, request, slug, project_id, pk=None):
+    def partial_update(self, request, slug, project_id, pk=None, **kwargs):
         queryset = self.get_queryset()
         queryset = self.apply_annotations(queryset)
         issue = (
@@ -734,7 +740,7 @@ class IssueViewSet(BaseViewSet):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @allow_permission([ROLE.ADMIN], creator=True, model=Issue)
-    def destroy(self, request, slug, project_id, pk=None):
+    def destroy(self, request, slug, project_id, pk=None, **kwargs):
         issue = self.get_queryset().get(workspace__slug=slug, project_id=project_id, pk=pk)
 
         issue.delete()
@@ -813,9 +819,15 @@ class DeletedIssuesListViewSet(BaseAPIView):
         filters = {}
         if request.GET.get("updated_at__gt", None) is not None:
             filters = {"updated_at__gt": request.GET.get("updated_at__gt")}
+        is_epic = bool(self.kwargs.get("is_epic", False))
+        if is_epic:
+            type_filter = Q(type__is_epic=True)
+        else:
+            type_filter = Q(type__isnull=True) | Q(type__is_epic=False)
         deleted_issues = (
             Issue.all_objects.filter(workspace__slug=slug, project_id=project_id)
             .filter(Q(archived_at__isnull=False) | Q(deleted_at__isnull=False))
+            .filter(type_filter)
             .filter(**filters)
             .values_list("id", flat=True)
         )
@@ -883,7 +895,7 @@ class IssuePaginatedViewSet(BaseViewSet):
         return paginated_data
 
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST])
-    def list(self, request, slug, project_id):
+    def list(self, request, slug, project_id, **kwargs):
         cursor = request.GET.get("cursor", None)
         is_description_required = request.GET.get("description", "false")
         updated_at = request.GET.get("updated_at__gt", None)

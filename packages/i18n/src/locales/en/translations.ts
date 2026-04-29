@@ -107,10 +107,10 @@ export default {
   general_settings: "General settings",
   sign_out: "Sign out",
   signing_out: "Signing out",
-  active_cycles: "Active cycles",
+  active_cycles: "Active sprints",
   active_cycles_description:
     "Monitor cycles across projects, track high-priority work items, and zoom in cycles that need attention.",
-  on_demand_snapshots_of_all_your_cycles: "On-demand snapshots of all your cycles",
+  on_demand_snapshots_of_all_your_cycles: "On-demand snapshots of all your sprints",
   upgrade: "Upgrade",
   "10000_feet_view": "10,000-feet view of all active cycles.",
   "10000_feet_view_description":
@@ -206,7 +206,7 @@ export default {
   congrats: "Congrats!",
   open_project: "Open project",
   issues: "Work items",
-  cycles: "Cycles",
+  cycles: "Sprints",
   modules: "Modules",
   pages: "Pages",
   intake: "Intake",
@@ -486,8 +486,8 @@ export default {
     priority: "Priority",
     team_project: "Team project",
     project: "Project",
-    cycle: "Cycle",
-    cycles: "Cycles",
+    cycle: "Sprint",
+    cycles: "Sprints",
     module: "Module",
     modules: "Modules",
     labels: "Labels",
@@ -1178,7 +1178,7 @@ export default {
     work_items_closed_in: "Work items closed in",
     selected_projects: "Selected projects",
     total_members: "Total members",
-    total_cycles: "Total cycles",
+    total_cycles: "Total sprints",
     total_modules: "Total modules",
     pending_work_items: {
       title: "Pending work items",
@@ -1803,15 +1803,15 @@ export default {
     },
   },
   project_cycles: {
-    add_cycle: "Add cycle",
+    add_cycle: "Add sprint",
     more_details: "More details",
-    cycle: "Cycle",
-    update_cycle: "Update cycle",
-    create_cycle: "Create cycle",
-    no_matching_cycles: "No matching cycles",
-    remove_filters_to_see_all_cycles: "Remove the filters to see all cycles",
-    remove_search_criteria_to_see_all_cycles: "Remove the search criteria to see all cycles",
-    only_completed_cycles_can_be_archived: "Only completed cycles can be archived",
+    cycle: "Sprint",
+    update_cycle: "Update sprint",
+    create_cycle: "Create sprint",
+    no_matching_cycles: "No matching sprints",
+    remove_filters_to_see_all_cycles: "Remove the filters to see all sprints",
+    remove_search_criteria_to_see_all_cycles: "Remove the search criteria to see all sprints",
+    only_completed_cycles_can_be_archived: "Only completed sprints can be archived",
     start_date: "Start date",
     end_date: "End date",
     in_your_timezone: "In your timezone",
@@ -1819,7 +1819,7 @@ export default {
     date_range: "Date range",
     add_date: "Add date",
     active_cycle: {
-      label: "Active cycle",
+      label: "Active sprint",
       progress: "Progress",
       chart: "Burndown chart",
       priority_issue: "Priority work items",
@@ -1830,10 +1830,10 @@ export default {
       labels: "Labels",
     },
     upcoming_cycle: {
-      label: "Upcoming cycle",
+      label: "Upcoming sprint",
     },
     completed_cycle: {
-      label: "Completed cycle",
+      label: "Completed sprint",
     },
     status: {
       days_left: "Days left",
@@ -1844,46 +1844,46 @@ export default {
     },
     action: {
       restore: {
-        title: "Restore cycle",
+        title: "Restore sprint",
         success: {
-          title: "Cycle restored",
-          description: "The cycle has been restored.",
+          title: "Sprint restored",
+          description: "The sprint has been restored.",
         },
         failed: {
-          title: "Cycle restore failed",
-          description: "The cycle could not be restored. Please try again.",
+          title: "Sprint restore failed",
+          description: "The sprint could not be restored. Please try again.",
         },
       },
       favorite: {
-        loading: "Adding cycle to favorites",
+        loading: "Adding sprint to favorites",
         success: {
-          description: "Cycle added to favorites.",
+          description: "Sprint added to favorites.",
           title: "Success!",
         },
         failed: {
-          description: "Couldn't add the cycle to favorites. Please try again.",
+          description: "Couldn't add the sprint to favorites. Please try again.",
           title: "Error!",
         },
       },
       unfavorite: {
-        loading: "Removing cycle from favorites",
+        loading: "Removing sprint from favorites",
         success: {
-          description: "Cycle removed from favorites.",
+          description: "Sprint removed from favorites.",
           title: "Success!",
         },
         failed: {
-          description: "Couldn't remove the cycle from favorites. Please try again.",
+          description: "Couldn't remove the sprint from favorites. Please try again.",
           title: "Error!",
         },
       },
       update: {
-        loading: "Updating cycle",
+        loading: "Updating sprint",
         success: {
-          description: "Cycle updated successfully.",
+          description: "Sprint updated successfully.",
           title: "Success!",
         },
         failed: {
-          description: "Error updating the cycle. Please try again.",
+          description: "Error updating the sprint. Please try again.",
           title: "Error!",
         },
         error: {
@@ -1894,21 +1894,21 @@ export default {
     },
     empty_state: {
       general: {
-        title: "Group and timebox your work in Cycles.",
+        title: "Group and timebox your work in Sprints.",
         description:
           "Break work down by timeboxed chunks, work backwards from your project deadline to set dates, and make tangible progress as a team.",
         primary_button: {
-          text: "Set your first cycle",
+          text: "Set your first sprint",
           comic: {
-            title: "Cycles are repetitive time-boxes.",
+            title: "Sprints are repetitive time-boxes.",
             description:
               "A sprint, an iteration, and or any other term you use for weekly or fortnightly tracking of work is a cycle.",
           },
         },
       },
       no_issues: {
-        title: "No work items added to the cycle",
-        description: "Add or create work items you wish to timebox and deliver within this cycle",
+        title: "No work items added to the sprint",
+        description: "Add or create work items you wish to timebox and deliver within this sprint",
         primary_button: {
           text: "Create new work item",
         },
@@ -1917,18 +1917,18 @@ export default {
         },
       },
       completed_no_issues: {
-        title: "No work items in the cycle",
+        title: "No work items in the sprint",
         description:
-          "No work items in the cycle. Work items are either transferred or hidden. To see hidden work items if any, update your display properties accordingly.",
+          "No work items in the sprint. Work items are either transferred or hidden. To see hidden work items if any, update your display properties accordingly.",
       },
       active: {
-        title: "No active cycle",
+        title: "No active sprint",
         description:
-          "An active cycle includes any period that encompasses today's date within its range. Find the progress and details of the active cycle here.",
+          "An active sprint includes any period that encompasses today's date within its range. Find the progress and details of the active sprint here.",
       },
       archived: {
-        title: "No archived cycles yet",
-        description: "To tidy up your project, archive completed cycles. Find them here once archived.",
+        title: "No archived sprints yet",
+        description: "To tidy up your project, archive completed sprints. Find them here once archived.",
       },
     },
   },

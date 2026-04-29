@@ -25,7 +25,7 @@ export const CommandPaletteProjectActions: React.FC<Props> = (props) => {
 
   return (
     <>
-      <Command.Group heading="Cycle">
+      <Command.Group heading="Sprint">
         <Command.Item
           data-ph-element={CYCLE_TRACKER_ELEMENTS.COMMAND_PALETTE_ADD_ITEM}
           onSelect={() => {
@@ -36,7 +36,7 @@ export const CommandPaletteProjectActions: React.FC<Props> = (props) => {
         >
           <div className="flex items-center gap-2 text-custom-text-200">
             <CycleIcon className="h-3.5 w-3.5" />
-            Create new cycle
+            Create new sprint
           </div>
           <kbd>Q</kbd>
         </Command.Item>

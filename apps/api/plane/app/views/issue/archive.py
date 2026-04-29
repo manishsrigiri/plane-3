@@ -105,7 +105,7 @@ class IssueArchiveViewSet(BaseViewSet):
 
     @method_decorator(gzip_page)
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER])
-    def list(self, request, slug, project_id):
+    def list(self, request, slug, project_id, **kwargs):
         filters = issue_filters(request.query_params, "GET")
         show_sub_issues = request.GET.get("show_sub_issues", "true")
 
@@ -219,7 +219,7 @@ class IssueArchiveViewSet(BaseViewSet):
             )
 
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER])
-    def retrieve(self, request, slug, project_id, pk=None):
+    def retrieve(self, request, slug, project_id, pk=None, **kwargs):
         issue = (
             self.get_queryset()
             .filter(pk=pk)
@@ -255,7 +255,7 @@ class IssueArchiveViewSet(BaseViewSet):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER])
-    def archive(self, request, slug, project_id, pk=None):
+    def archive(self, request, slug, project_id, pk=None, **kwargs):
         issue = Issue.issue_objects.get(workspace__slug=slug, project_id=project_id, pk=pk)
         if issue.state.group not in ["completed", "cancelled"]:
             return Response(
@@ -279,7 +279,7 @@ class IssueArchiveViewSet(BaseViewSet):
         return Response({"archived_at": str(issue.archived_at)}, status=status.HTTP_200_OK)
 
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER])
-    def unarchive(self, request, slug, project_id, pk=None):
+    def unarchive(self, request, slug, project_id, pk=None, **kwargs):
         issue = Issue.objects.get(
             workspace__slug=slug,
             project_id=project_id,

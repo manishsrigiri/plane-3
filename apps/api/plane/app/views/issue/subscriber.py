@@ -45,14 +45,14 @@ class IssueSubscriberViewSet(BaseViewSet):
             .distinct()
         )
 
-    def list(self, request, slug, project_id, issue_id):
+    def list(self, request, slug, project_id, issue_id, **kwargs):
         members = ProjectMember.objects.filter(
             workspace__slug=slug, project_id=project_id, is_active=True
         ).select_related("member")
         serializer = ProjectMemberLiteSerializer(members, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    def destroy(self, request, slug, project_id, issue_id, subscriber_id):
+    def destroy(self, request, slug, project_id, issue_id, subscriber_id, **kwargs):
         issue_subscriber = IssueSubscriber.objects.get(
             project=project_id,
             subscriber=subscriber_id,
@@ -62,7 +62,7 @@ class IssueSubscriberViewSet(BaseViewSet):
         issue_subscriber.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    def subscribe(self, request, slug, project_id, issue_id):
+    def subscribe(self, request, slug, project_id, issue_id, **kwargs):
         if IssueSubscriber.objects.filter(
             issue_id=issue_id,
             subscriber=request.user,
@@ -80,7 +80,7 @@ class IssueSubscriberViewSet(BaseViewSet):
         serializer = IssueSubscriberSerializer(subscriber)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    def unsubscribe(self, request, slug, project_id, issue_id):
+    def unsubscribe(self, request, slug, project_id, issue_id, **kwargs):
         issue_subscriber = IssueSubscriber.objects.get(
             project=project_id,
             subscriber=request.user,
@@ -90,7 +90,7 @@ class IssueSubscriberViewSet(BaseViewSet):
         issue_subscriber.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    def subscription_status(self, request, slug, project_id, issue_id):
+    def subscription_status(self, request, slug, project_id, issue_id, **kwargs):
         issue_subscriber = IssueSubscriber.objects.filter(
             issue=issue_id,
             subscriber=request.user,

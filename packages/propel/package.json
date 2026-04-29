@@ -17,146 +17,182 @@
   },
   "exports": {
     "./accordion": {
+      "types": "./dist/accordion/index.d.mts",
       "import": "./dist/accordion/index.mjs",
       "require": "./dist/accordion/index.js"
     },
     "./animated-counter": {
+      "types": "./dist/animated-counter/index.d.mts",
       "import": "./dist/animated-counter/index.mjs",
       "require": "./dist/animated-counter/index.js"
     },
     "./avatar": {
+      "types": "./dist/avatar/index.d.mts",
       "import": "./dist/avatar/index.mjs",
       "require": "./dist/avatar/index.js"
     },
     "./button": {
+      "types": "./dist/button/index.d.mts",
       "import": "./dist/button/index.mjs",
       "require": "./dist/button/index.js"
     },
     "./calendar": {
+      "types": "./dist/calendar/index.d.mts",
       "import": "./dist/calendar/index.mjs",
       "require": "./dist/calendar/index.js"
     },
     "./card": {
+      "types": "./dist/card/index.d.mts",
       "import": "./dist/card/index.mjs",
       "require": "./dist/card/index.js"
     },
     "./charts/area-chart": {
+      "types": "./dist/charts/area-chart/index.d.mts",
       "import": "./dist/charts/area-chart/index.mjs",
       "require": "./dist/charts/area-chart/index.js"
     },
     "./charts/bar-chart": {
+      "types": "./dist/charts/bar-chart/index.d.mts",
       "import": "./dist/charts/bar-chart/index.mjs",
       "require": "./dist/charts/bar-chart/index.js"
     },
     "./charts/line-chart": {
+      "types": "./dist/charts/line-chart/index.d.mts",
       "import": "./dist/charts/line-chart/index.mjs",
       "require": "./dist/charts/line-chart/index.js"
     },
     "./charts/pie-chart": {
+      "types": "./dist/charts/pie-chart/index.d.mts",
       "import": "./dist/charts/pie-chart/index.mjs",
       "require": "./dist/charts/pie-chart/index.js"
     },
     "./charts/radar-chart": {
+      "types": "./dist/charts/radar-chart/index.d.mts",
       "import": "./dist/charts/radar-chart/index.mjs",
       "require": "./dist/charts/radar-chart/index.js"
     },
     "./charts/scatter-chart": {
+      "types": "./dist/charts/scatter-chart/index.d.mts",
       "import": "./dist/charts/scatter-chart/index.mjs",
       "require": "./dist/charts/scatter-chart/index.js"
     },
     "./charts/tree-map": {
+      "types": "./dist/charts/tree-map/index.d.mts",
       "import": "./dist/charts/tree-map/index.mjs",
       "require": "./dist/charts/tree-map/index.js"
     },
     "./collapsible": {
+      "types": "./dist/collapsible/index.d.mts",
       "import": "./dist/collapsible/index.mjs",
       "require": "./dist/collapsible/index.js"
     },
     "./combobox": {
+      "types": "./dist/combobox/index.d.mts",
       "import": "./dist/combobox/index.mjs",
       "require": "./dist/combobox/index.js"
     },
     "./command": {
+      "types": "./dist/command/index.d.mts",
       "import": "./dist/command/index.mjs",
       "require": "./dist/command/index.js"
     },
     "./context-menu": {
+      "types": "./dist/context-menu/index.d.mts",
       "import": "./dist/context-menu/index.mjs",
       "require": "./dist/context-menu/index.js"
     },
     "./dialog": {
+      "types": "./dist/dialog/index.d.mts",
       "import": "./dist/dialog/index.mjs",
       "require": "./dist/dialog/index.js"
     },
     "./emoji-icon-picker": {
+      "types": "./dist/emoji-icon-picker/index.d.mts",
       "import": "./dist/emoji-icon-picker/index.mjs",
       "require": "./dist/emoji-icon-picker/index.js"
     },
     "./emoji-reaction": {
+      "types": "./dist/emoji-reaction/index.d.mts",
       "import": "./dist/emoji-reaction/index.mjs",
       "require": "./dist/emoji-reaction/index.js"
     },
     "./empty-state": {
+      "types": "./dist/empty-state/index.d.mts",
       "import": "./dist/empty-state/index.mjs",
       "require": "./dist/empty-state/index.js"
     },
     "./icons": {
+      "types": "./dist/icons/index.d.mts",
       "import": "./dist/icons/index.mjs",
       "require": "./dist/icons/index.js"
     },
     "./input": {
+      "types": "./dist/input/index.d.mts",
       "import": "./dist/input/index.mjs",
       "require": "./dist/input/index.js"
     },
     "./menu": {
+      "types": "./dist/menu/index.d.mts",
       "import": "./dist/menu/index.mjs",
       "require": "./dist/menu/index.js"
     },
     "./pill": {
+      "types": "./dist/pill/index.d.mts",
       "import": "./dist/pill/index.mjs",
       "require": "./dist/pill/index.js"
     },
     "./popover": {
+      "types": "./dist/popover/index.d.mts",
       "import": "./dist/popover/index.mjs",
       "require": "./dist/popover/index.js"
     },
     "./portal": {
+      "types": "./dist/portal/index.d.mts",
       "import": "./dist/portal/index.mjs",
       "require": "./dist/portal/index.js"
     },
     "./scrollarea": {
+      "types": "./dist/scrollarea/index.d.mts",
       "import": "./dist/scrollarea/index.mjs",
       "require": "./dist/scrollarea/index.js"
     },
     "./skeleton": {
+      "types": "./dist/skeleton/index.d.mts",
       "import": "./dist/skeleton/index.mjs",
       "require": "./dist/skeleton/index.js"
     },
     "./switch": {
+      "types": "./dist/switch/index.d.mts",
       "import": "./dist/switch/index.mjs",
       "require": "./dist/switch/index.js"
     },
     "./table": {
+      "types": "./dist/table/index.d.mts",
       "import": "./dist/table/index.mjs",
       "require": "./dist/table/index.js"
     },
     "./tabs": {
+      "types": "./dist/tabs/index.d.mts",
       "import": "./dist/tabs/index.mjs",
       "require": "./dist/tabs/index.js"
     },
     "./toast": {
+      "types": "./dist/toast/index.d.mts",
       "import": "./dist/toast/index.mjs",
       "require": "./dist/toast/index.js"
     },
     "./toolbar": {
+      "types": "./dist/toolbar/index.d.mts",
       "import": "./dist/toolbar/index.mjs",
       "require": "./dist/toolbar/index.js"
     },
     "./tooltip": {
+      "types": "./dist/tooltip/index.d.mts",
       "import": "./dist/tooltip/index.mjs",
       "require": "./dist/tooltip/index.js"
     },
     "./utils": {
+      "types": "./dist/utils/index.d.mts",
       "import": "./dist/utils/index.mjs",
       "require": "./dist/utils/index.js"
     },

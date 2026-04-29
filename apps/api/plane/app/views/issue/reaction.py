@@ -39,7 +39,7 @@ class IssueReactionViewSet(BaseViewSet):
         )
 
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST])
-    def create(self, request, slug, project_id, issue_id):
+    def create(self, request, slug, project_id, issue_id, **kwargs):
         serializer = IssueReactionSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save(issue_id=issue_id, project_id=project_id, actor=request.user)
@@ -58,7 +58,7 @@ class IssueReactionViewSet(BaseViewSet):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST])
-    def destroy(self, request, slug, project_id, issue_id, reaction_code):
+    def destroy(self, request, slug, project_id, issue_id, reaction_code, **kwargs):
         issue_reaction = IssueReaction.objects.get(
             workspace__slug=slug,
             project_id=project_id,

@@ -35,7 +35,7 @@ class IssueRelationViewSet(BaseViewSet):
     model = IssueRelation
     permission_classes = [ProjectEntityPermission]
 
-    def list(self, request, slug, project_id, issue_id):
+    def list(self, request, slug, project_id, issue_id, **kwargs):
         issue_relations = (
             IssueRelation.objects.filter(Q(issue_id=issue_id) | Q(related_issue=issue_id))
             .filter(workspace__slug=self.kwargs.get("slug"))
@@ -202,7 +202,7 @@ class IssueRelationViewSet(BaseViewSet):
 
         return Response(response_data, status=status.HTTP_200_OK)
 
-    def create(self, request, slug, project_id, issue_id):
+    def create(self, request, slug, project_id, issue_id, **kwargs):
         relation_type = request.data.get("relation_type", None)
         if relation_type is None:
             return Response(
@@ -255,7 +255,7 @@ class IssueRelationViewSet(BaseViewSet):
                 status=status.HTTP_201_CREATED,
             )
 
-    def remove_relation(self, request, slug, project_id, issue_id):
+    def remove_relation(self, request, slug, project_id, issue_id, **kwargs):
         related_issue = request.data.get("related_issue", None)
 
         issue_relations = IssueRelation.objects.filter(

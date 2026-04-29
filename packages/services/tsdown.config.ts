@@ -8,4 +8,5 @@ export default defineConfig({
   dts: true,
   clean: true,
   sourcemap: true,
+  ignoreWatch: ["**/.turbo/**", "**/dist/**", "**/node_modules/**"],
 });

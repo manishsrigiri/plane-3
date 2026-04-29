@@ -5,14 +5,13 @@ import { observer } from "mobx-react";
 // plane imports
 import { useTranslation } from "@plane/i18n";
 import type { TIssue, TIssueServiceType } from "@plane/types";
-import { EIssueServiceType } from "@plane/types";
+import { EIssueServiceType, EIssuesStoreType } from "@plane/types";
 import { Collapsible } from "@plane/ui";
 // components
 import { CreateUpdateIssueModal } from "@/components/issues/issue-modal/modal";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 // Plane-web
-import { CreateUpdateEpicModal } from "@/plane-web/components/epics/epic-modal";
 import { useTimeLineRelationOptions } from "@/plane-web/components/relations";
 import type { TIssueRelationTypes } from "@/plane-web/types";
 // helper
@@ -203,33 +202,25 @@ export const RelationsCollapsibleContent: FC<Props> = observer((props) => {
 
       {shouldRenderIssueUpdateModal && (
         <>
-          {!!issueCrudState?.update?.issue?.is_epic ? (
-            <CreateUpdateEpicModal
-              isOpen={issueCrudState?.update?.toggle}
-              onClose={() => {
-                handleIssueCrudState("update", null, null);
-                toggleCreateIssueModal(false);
-              }}
-              data={issueCrudState?.update?.issue ?? undefined}
-              onSubmit={async (_issue: TIssue) => {
-                if (!_issue.id || !_issue.project_id) return;
+          <CreateUpdateIssueModal
+            isOpen={issueCrudState?.update?.toggle}
+            onClose={() => {
+              handleIssueCrudState("update", null, null);
+              toggleCreateIssueModal(false);
+            }}
+            data={issueCrudState?.update?.issue ?? undefined}
+            storeType={
+              issueCrudState?.update?.issue?.is_epic ? EIssuesStoreType.EPIC : EIssuesStoreType.PROJECT
+            }
+            onSubmit={async (_issue: TIssue) => {
+              if (!_issue.id || !_issue.project_id) return;
+              if (_issue.is_epic) {
                 await epicOperations.update(workspaceSlug, _issue.project_id, _issue.id, _issue);
-              }}
-            />
-          ) : (
-            <CreateUpdateIssueModal
-              isOpen={issueCrudState?.update?.toggle}
-              onClose={() => {
-                handleIssueCrudState("update", null, null);
-                toggleCreateIssueModal(false);
-              }}
-              data={issueCrudState?.update?.issue ?? undefined}
-              onSubmit={async (_issue: TIssue) => {
-                if (!_issue.id || !_issue.project_id) return;
+              } else {
                 await issueOperations.update(workspaceSlug, _issue.project_id, _issue.id, _issue);
-              }}
-            />
-          )}
+              }
+            }}
+          />
         </>
       )}
     </>

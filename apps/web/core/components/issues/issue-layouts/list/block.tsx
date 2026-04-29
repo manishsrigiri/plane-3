@@ -244,7 +244,7 @@ export const IssueBlock = observer((props: IssueBlockProps) => {
 
               {/* sub-issues chevron */}
               <div className="size-4 grid place-items-center flex-shrink-0">
-                {subIssuesCount > 0 && !isEpic && (
+                {subIssuesCount > 0 && (
                   <button
                     type="button"
                     className="size-4 grid place-items-center rounded-sm text-custom-text-400 hover:text-custom-text-300"

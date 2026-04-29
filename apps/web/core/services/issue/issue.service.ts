@@ -87,7 +87,7 @@ export class IssueService extends APIService {
   }
 
   async getDeletedIssues(workspaceSlug: string, projectId: string, queries?: any): Promise<TIssuesResponse> {
-    return this.get(`/api/workspaces/${workspaceSlug}/projects/${projectId}/deleted-issues/`, {
+    return this.get(`/api/workspaces/${workspaceSlug}/projects/${projectId}/deleted-${this.serviceType}/`, {
       params: queries,
     })
       .then((response) => response?.data)
@@ -372,7 +372,7 @@ export class IssueService extends APIService {
       issue_ids: string[];
     }
   ): Promise<any> {
-    return this.delete(`/api/workspaces/${workspaceSlug}/projects/${projectId}/bulk-delete-issues/`, data)
+    return this.delete(`/api/workspaces/${workspaceSlug}/projects/${projectId}/bulk-delete-${this.serviceType}/`, data)
       .then(async (response) => {
         if (this.serviceType === EIssueServiceType.ISSUES) {
           const { persistence } = await import("@/local-db/storage.sqlite");
@@ -462,7 +462,7 @@ export class IssueService extends APIService {
     project_identifier: string;
     sequence_id: string;
   }> {
-    return this.get(`/api/workspaces/${workspaceSlug}/projects/${projectId}/issues/${issueId}/meta/`)
+    return this.get(`/api/workspaces/${workspaceSlug}/projects/${projectId}/${this.serviceType}/${issueId}/meta/`)
       .then((response) => response?.data)
       .catch((error) => {
         throw error?.response?.data;

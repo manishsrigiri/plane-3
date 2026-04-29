@@ -3,7 +3,7 @@ import { useCallback, useMemo } from "react";
 import type { EventToPayloadMap } from "@plane/editor";
 import { setToast, TOAST_TYPE } from "@plane/propel/toast";
 // types
-import type { IUserLite } from "@plane/types";
+import type { IUserLite, TPage } from "@plane/types";
 // components
 import type { TEditorBodyHandlers } from "@/components/pages/editor/editor-body";
 // hooks
@@ -125,7 +125,11 @@ export const useRealtimePageEvents = ({
           const pageInstance = getPageById(pageId);
           const { name: updatedName, ...rest } = data;
           if (updatedName != null) pageInstance?.updateTitle(updatedName);
-          pageInstance?.mutateProperties(rest);
+          const updatedProperties: Partial<TPage> = {
+            ...rest,
+            ...(rest.access !== undefined ? { access: rest.access as TPage["access"] } : {}),
+          };
+          pageInstance?.mutateProperties(updatedProperties);
         });
       },
       error: ({ pageIds, data }) => {

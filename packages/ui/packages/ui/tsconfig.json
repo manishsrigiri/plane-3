@@ -9,24 +9,16 @@
     "strict": true,
     "skipLibCheck": true,
     "sourceMap": true,
-
     "baseUrl": ".",
-
     "paths": {
       "@/*": ["./src/core/*"],
       "@/styles/*": ["./src/styles/*"],
-      "@/plane-editor/*": ["./src/ce/*"],
-
-      "@plane/constants": ["../constants/src"],
-      "@plane/types": ["../types/src"],
-      "@plane/hooks": ["../hooks/src"],
-      "@plane/ui": ["../ui/src"],
-      "@plane/utils": ["../utils/src"]
+      "@/plane-editor/*": ["./src/ce/*"]
     },
-
+    "typeRoots": ["./types", "./node_modules/@types"],
     "strictNullChecks": true,
     "allowSyntheticDefaultImports": true
   },
-  "include": ["src/**/*", "index.d.ts"],
+  "include": ["src/**/*", "index.d.ts", "types/**/*.d.ts"],
   "exclude": ["dist", "build", "node_modules"]
 }
