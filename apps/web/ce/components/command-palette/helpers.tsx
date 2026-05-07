@@ -56,6 +56,7 @@ export const commandGroups: TCommandGroups = {
         issueId: issue?.id,
         projectIdentifier: issue.project__identifier,
         sequenceId: issue?.sequence_id,
+        isEpic: !!(issue as IWorkspaceIssueSearchResult & { is_epic?: boolean })?.is_epic,
       }),
     title: "Work items",
   },

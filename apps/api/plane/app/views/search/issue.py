@@ -134,11 +134,47 @@ class IssueSearchEndpoint(BaseAPIView):
         if target_date == "none":
             issues = self.filter_issues_without_target_date(issues)
 
+        epic_only = request.query_params.get("epic", "false")
+        if epic_only == "true":
+            issues = issues.filter(type__is_epic=True)
+
         if ProjectMember.objects.filter(
             project_id=project_id, member=self.request.user, is_active=True, role=5
         ).exists():
             issues = issues.filter(created_by=self.request.user)
 
+        return Response(
+            issues.values(
+                "name",
+                "id",
+                "start_date",
+                "sequence_id",
+                "project__name",
+                "project__identifier",
+                "project_id",
+                "workspace__slug",
+                "state__name",
+                "state__group",
+                "state__color",
+            )[:100],
+            status=status.HTTP_200_OK,
+        )
+
+
+class WorkspaceEpicSearchEndpoint(BaseAPIView):
+    """Search for Epics across all projects in a workspace (no project_id required)."""
+
+    def get(self, request, slug):
+        query = request.query_params.get("search", "")
+        issues = Issue.issue_objects.filter(
+            workspace__slug=slug,
+            type__is_epic=True,
+            project__project_projectmember__member=self.request.user,
+            project__project_projectmember__is_active=True,
+            project__archived_at__isnull=True,
+        )
+        if query:
+            issues = search_issues(query, issues)
         return Response(
             issues.values(
                 "name",

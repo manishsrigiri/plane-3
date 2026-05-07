@@ -16,10 +16,14 @@ export type TNotificationPreview = {
  */
 export const useNotificationPreview = (): TNotificationPreview => {
   const { peekIssue, setPeekIssue } = useIssueDetail(EIssueServiceType.ISSUES);
+  const { peekIssue: peekEpic, setPeekIssue: setPeekEpic } = useIssueDetail(EIssueServiceType.EPICS);
 
   return {
-    isWorkItem: Boolean(peekIssue),
+    isWorkItem: Boolean(peekIssue || peekEpic),
     PeekOverviewComponent: IssuePeekOverview,
-    setPeekWorkItem: setPeekIssue,
+    setPeekWorkItem: (peekIssue) => {
+      setPeekIssue(peekIssue);
+      setPeekEpic(peekIssue);
+    },
   };
 };

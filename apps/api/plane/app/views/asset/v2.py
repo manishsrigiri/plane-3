@@ -226,6 +226,11 @@ class WorkspaceFileAssetEndpoint(BaseAPIView):
         # Comment Description
         if entity_type == FileAsset.EntityTypeContext.COMMENT_DESCRIPTION:
             return {"comment_id": entity_id}
+
+        # Initiative Description — entity_identifier holds the initiative UUID
+        if entity_type == FileAsset.EntityTypeContext.INITIATIVE_DESCRIPTION:
+            return {}  # stored via entity_identifier only; no FK column on FileAsset
+
         return {}
 
     def asset_delete(self, asset_id):

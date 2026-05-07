@@ -1,5 +1,6 @@
 from django.urls import path
 
+from plane.api.views import EpicProgressAPIView, EpicUpdateAPIView
 from plane.app.views import (
     BulkCreateIssueLabelsEndpoint,
     BulkDeleteIssuesEndpoint,
@@ -463,5 +464,15 @@ urlpatterns += [
         "workspaces/<str:slug>/projects/<uuid:project_id>/epics/<uuid:issue_id>/meta/",
         IssueMetaEndpoint.as_view(),
         name="epic-meta",
+    ),
+    path(
+        "workspaces/<str:slug>/projects/<uuid:project_id>/epics/<uuid:epic_id>/progress/",
+        EpicProgressAPIView.as_view(),
+        name="epic-progress",
+    ),
+    path(
+        "workspaces/<str:slug>/projects/<uuid:project_id>/epics/<uuid:epic_id>/updates/",
+        EpicUpdateAPIView.as_view(),
+        name="epic-updates",
     ),
 ]

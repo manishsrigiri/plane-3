@@ -3,6 +3,7 @@
 import type { FC } from "react";
 import React from "react";
 import { observer } from "mobx-react";
+import { useRouter } from "next/navigation";
 import { X, Pencil, Trash, Link as LinkIcon } from "lucide-react";
 // plane imports
 import { useTranslation } from "@plane/i18n";
@@ -51,6 +52,7 @@ export const RelationIssueListItem: FC<Props> = observer((props) => {
   } = props;
 
   const { t } = useTranslation();
+  const router = useRouter();
 
   // store hooks
   const {
@@ -82,8 +84,7 @@ export const RelationIssueListItem: FC<Props> = observer((props) => {
   // handlers
   const handleIssuePeekOverview = (issue: TIssue) => {
     if (issue.is_epic) {
-      // open epics in new tab
-      window.open(workItemLink, "_blank");
+      router.push(workItemLink);
       return;
     }
     handleRedirection(workspaceSlug, issue, isMobile);
@@ -121,6 +122,7 @@ export const RelationIssueListItem: FC<Props> = observer((props) => {
       <ControlLink
         id={`issue-${issue.id}`}
         href={workItemLink}
+        target="_self"
         onClick={() => handleIssuePeekOverview(issue)}
         className="w-full cursor-pointer"
       >

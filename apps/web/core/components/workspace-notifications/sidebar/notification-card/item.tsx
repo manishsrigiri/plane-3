@@ -5,6 +5,7 @@ import { useState } from "react";
 import { observer } from "mobx-react";
 import { Clock } from "lucide-react";
 // plane imports
+import { EIssueServiceType } from "@plane/types";
 import { Avatar, Row } from "@plane/ui";
 import { cn, calculateTimeAgo, renderFormattedDate, renderFormattedTime, getFileURL } from "@plane/utils";
 // hooks
@@ -27,6 +28,7 @@ export const NotificationItem: FC<TNotificationItem> = observer((props) => {
   const { currentSelectedNotificationId, setCurrentSelectedNotificationId } = useWorkspaceNotifications();
   const { asJson: notification, markNotificationAsRead } = useNotification(notificationId);
   const { getIsIssuePeeked, setPeekIssue } = useIssueDetail();
+  const { getIsIssuePeeked: getIsEpicPeeked, setPeekIssue: setPeekEpic } = useIssueDetail(EIssueServiceType.EPICS);
   const { getWorkspaceBySlug } = useWorkspace();
   // states
   const [isSnoozeStateModalOpen, setIsSnoozeStateModalOpen] = useState(false);
@@ -35,6 +37,7 @@ export const NotificationItem: FC<TNotificationItem> = observer((props) => {
   // derived values
   const projectId = notification?.project || undefined;
   const issueId = notification?.data?.issue?.id || undefined;
+  const isEpicNotification = !!(notification?.data?.issue as { is_epic?: boolean } | undefined)?.is_epic;
   const workspace = getWorkspaceBySlug(workspaceSlug);
 
   const notificationField = notification?.data?.issue_activity.field || undefined;
@@ -43,6 +46,7 @@ export const NotificationItem: FC<TNotificationItem> = observer((props) => {
   const handleNotificationIssuePeekOverview = async () => {
     if (workspaceSlug && projectId && issueId && !isSnoozeStateModalOpen && !customSnoozeModal) {
       setPeekIssue(undefined);
+      setPeekEpic(undefined);
       setCurrentSelectedNotificationId(notificationId);
 
       // make the notification as read
@@ -55,7 +59,11 @@ export const NotificationItem: FC<TNotificationItem> = observer((props) => {
       }
 
       if (notification?.is_inbox_issue === false) {
-        !getIsIssuePeeked(issueId) && setPeekIssue({ workspaceSlug, projectId, issueId });
+        if (isEpicNotification) {
+          if (!getIsEpicPeeked(issueId)) setPeekEpic({ workspaceSlug, projectId, issueId });
+        } else if (!getIsIssuePeeked(issueId)) {
+          setPeekIssue({ workspaceSlug, projectId, issueId });
+        }
       }
     }
   };

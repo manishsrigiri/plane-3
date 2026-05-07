@@ -1,9 +1,9 @@
 "use client";
 
-import type { Dispatch, MouseEvent, MutableRefObject, SetStateAction } from "react";
+import type { Dispatch, KeyboardEvent, MouseEvent, MutableRefObject, SetStateAction } from "react";
 import { useRef, useState } from "react";
 import { observer } from "mobx-react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { ChevronRight, MoreHorizontal } from "lucide-react";
 import { SPREADSHEET_SELECT_GROUP } from "@plane/constants";
 // plane helpers
@@ -187,6 +187,7 @@ const IssueRowDetails = observer((props: IssueRowDetailsProps) => {
   const cellRef = useRef(null);
   const menuActionRef = useRef<HTMLDivElement | null>(null);
   // router
+  const router = useRouter();
   const { workspaceSlug, projectId } = useParams();
   // hooks
   const { getProjectIdentifierById } = useProject();
@@ -212,7 +213,10 @@ const IssueRowDetails = observer((props: IssueRowDetailsProps) => {
       className={`flex items-center h-full w-full cursor-pointer rounded p-1 text-custom-sidebar-text-400 hover:bg-custom-background-80 ${
         isMenuActive ? "bg-custom-background-80 text-custom-text-100" : "text-custom-text-200"
       }`}
-      onClick={() => setIsMenuActive(!isMenuActive)}
+      onClick={(e) => {
+        e.stopPropagation();
+        setIsMenuActive(!isMenuActive);
+      }}
     >
       <MoreHorizontal className="h-3.5 w-3.5" />
     </div>
@@ -251,8 +255,121 @@ const IssueRowDetails = observer((props: IssueRowDetailsProps) => {
     issueId,
     projectIdentifier,
     sequenceId: issueDetail?.sequence_id,
-    isEpic,
   });
+  const handleEpicNavigation = () => router.push(workItemLink);
+  const handleEpicKeyDown = (e: KeyboardEvent<HTMLTableCellElement>) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      handleEpicNavigation();
+    }
+  };
+
+  const rowContent = (
+    <Row
+      className={cn(
+        "group clickable cursor-pointer h-11 w-full flex items-center text-sm after:absolute border-r-[0.5px] z-10 border-custom-border-200 bg-transparent group-[.selected-issue-row]:bg-custom-primary-100/5 group-[.selected-issue-row]:hover:bg-custom-primary-100/10",
+        {
+          "border-b-[0.5px]": !getIsIssuePeeked(issueDetail.id),
+          "border border-custom-primary-70 hover:border-custom-primary-70":
+            getIsIssuePeeked(issueDetail.id) && nestingLevel === peekIssue?.nestingLevel,
+          "shadow-[8px_22px_22px_10px_rgba(0,0,0,0.05)]": isScrolled.current,
+        }
+      )}
+    >
+      <div className="flex items-center gap-0.5 min-w-min py-2">
+        {/* select checkbox */}
+        {projectId && canSelectIssues && !isEpic && (
+          <Tooltip
+            tooltipContent={
+              <>
+                Only work items within the current
+                <br />
+                project can be selected.
+              </>
+            }
+            disabled={issueDetail.project_id === projectId}
+          >
+            <div className="flex-shrink-0 grid place-items-center w-3.5 mr-1 absolute left-1">
+              <MultipleSelectEntityAction
+                className={cn(
+                  "opacity-0 pointer-events-none group-hover/list-block:opacity-100 group-hover/list-block:pointer-events-auto transition-opacity",
+                  {
+                    "opacity-100 pointer-events-auto": isIssueSelected,
+                  }
+                )}
+                groupId={SPREADSHEET_SELECT_GROUP}
+                id={issueDetail.id}
+                selectionHelpers={selectionHelpers}
+                disabled={issueDetail.project_id !== projectId}
+              />
+            </div>
+          </Tooltip>
+        )}
+
+        {/* sub issues indentation */}
+        {nestingLevel !== 0 && <div style={{ width: subIssueIndentation }} />}
+
+        {(displayProperties?.key || displayProperties?.issue_type) && (
+          <div className="relative flex cursor-pointer items-center text-center text-xs hover:text-custom-text-100">
+            <p className={`flex font-medium leading-7`} style={{ minWidth: `${keyMinWidth}px` }}>
+              {issueDetail.project_id && (
+                <IssueIdentifier
+                  issueId={issueDetail.id}
+                  projectId={issueDetail.project_id}
+                  textContainerClassName="text-sm md:text-xs text-custom-text-300"
+                  displayProperties={displayProperties}
+                />
+              )}
+            </p>
+          </div>
+        )}
+
+        {/* sub-issues chevron */}
+        <div className="grid place-items-center size-4">
+          {subIssuesCount > 0 && !isEpic && (
+            <button
+              type="button"
+              className="grid place-items-center size-4 rounded-sm text-custom-text-400 hover:text-custom-text-300"
+              onClick={handleToggleExpand}
+            >
+              <ChevronRight
+                className={cn("size-4", {
+                  "rotate-90": isExpanded,
+                })}
+                strokeWidth={2.5}
+              />
+            </button>
+          )}
+        </div>
+      </div>
+
+      <div className="flex items-center gap-2 justify-between h-full w-full truncate my-auto">
+        <div className="w-full line-clamp-1 text-sm text-custom-text-100">
+          <div className="w-full overflow-hidden">
+            <Tooltip tooltipContent={issueDetail.name} isMobile={isMobile}>
+              <div
+                className="h-full w-full cursor-pointer truncate pr-4 text-left text-[0.825rem] text-custom-text-100 focus:outline-none"
+                tabIndex={-1}
+              >
+                {issueDetail.name}
+              </div>
+            </Tooltip>
+          </div>
+        </div>
+        <div
+          className={`hidden group-hover:block ${isMenuActive ? "!block" : ""}`}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {quickActions({
+            issue: issueDetail,
+            parentRef: cellRef,
+            customActionButton,
+            portalElement: portalElement.current,
+          })}
+        </div>
+      </div>
+    </Row>
+  );
 
   return (
     <>
@@ -260,119 +377,24 @@ const IssueRowDetails = observer((props: IssueRowDetailsProps) => {
         id={`issue-${issueId}`}
         ref={cellRef}
         tabIndex={0}
+        role={isEpic ? "button" : undefined}
+        onClick={isEpic ? handleEpicNavigation : undefined}
+        onKeyDown={isEpic ? handleEpicKeyDown : undefined}
         className="relative md:sticky left-0 z-10 group/list-block bg-custom-background-100 min-w-60 max-w-[30vw]"
       >
-        <ControlLink
-          href={workItemLink}
-          onClick={() => handleIssuePeekOverview(issueDetail)}
-          className="outline-none"
-          disabled={!!issueDetail?.tempId}
-        >
-          <Row
-            className={cn(
-              "group clickable cursor-pointer h-11 w-full flex items-center text-sm after:absolute border-r-[0.5px] z-10 border-custom-border-200 bg-transparent group-[.selected-issue-row]:bg-custom-primary-100/5 group-[.selected-issue-row]:hover:bg-custom-primary-100/10",
-              {
-                "border-b-[0.5px]": !getIsIssuePeeked(issueDetail.id),
-                "border border-custom-primary-70 hover:border-custom-primary-70":
-                  getIsIssuePeeked(issueDetail.id) && nestingLevel === peekIssue?.nestingLevel,
-                "shadow-[8px_22px_22px_10px_rgba(0,0,0,0.05)]": isScrolled.current,
-              }
-            )}
+        {isEpic ? (
+          rowContent
+        ) : (
+          <ControlLink
+            href={workItemLink}
+            target="_self"
+            onClick={() => handleIssuePeekOverview(issueDetail)}
+            className="outline-none"
+            disabled={!!issueDetail?.tempId}
           >
-            <div className="flex items-center gap-0.5 min-w-min py-2">
-              {/* select checkbox */}
-              {projectId && canSelectIssues && (
-                <Tooltip
-                  tooltipContent={
-                    <>
-                      Only work items within the current
-                      <br />
-                      project can be selected.
-                    </>
-                  }
-                  disabled={issueDetail.project_id === projectId}
-                >
-                  <div className="flex-shrink-0 grid place-items-center w-3.5 mr-1 absolute left-1">
-                    <MultipleSelectEntityAction
-                      className={cn(
-                        "opacity-0 pointer-events-none group-hover/list-block:opacity-100 group-hover/list-block:pointer-events-auto transition-opacity",
-                        {
-                          "opacity-100 pointer-events-auto": isIssueSelected,
-                        }
-                      )}
-                      groupId={SPREADSHEET_SELECT_GROUP}
-                      id={issueDetail.id}
-                      selectionHelpers={selectionHelpers}
-                      disabled={issueDetail.project_id !== projectId}
-                    />
-                  </div>
-                </Tooltip>
-              )}
-
-              {/* sub issues indentation */}
-              {nestingLevel !== 0 && <div style={{ width: subIssueIndentation }} />}
-
-              {(displayProperties?.key || displayProperties?.issue_type) && (
-                <div className="relative flex cursor-pointer items-center text-center text-xs hover:text-custom-text-100">
-                  <p className={`flex font-medium leading-7`} style={{ minWidth: `${keyMinWidth}px` }}>
-                    {issueDetail.project_id && (
-                      <IssueIdentifier
-                        issueId={issueDetail.id}
-                        projectId={issueDetail.project_id}
-                        textContainerClassName="text-sm md:text-xs text-custom-text-300"
-                        displayProperties={displayProperties}
-                      />
-                    )}
-                  </p>
-                </div>
-              )}
-
-              {/* sub-issues chevron */}
-              <div className="grid place-items-center size-4">
-                {subIssuesCount > 0 && !isEpic && (
-                  <button
-                    type="button"
-                    className="grid place-items-center size-4 rounded-sm text-custom-text-400 hover:text-custom-text-300"
-                    onClick={handleToggleExpand}
-                  >
-                    <ChevronRight
-                      className={cn("size-4", {
-                        "rotate-90": isExpanded,
-                      })}
-                      strokeWidth={2.5}
-                    />
-                  </button>
-                )}
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2 justify-between h-full w-full truncate my-auto">
-              <div className="w-full line-clamp-1 text-sm text-custom-text-100">
-                <div className="w-full overflow-hidden">
-                  <Tooltip tooltipContent={issueDetail.name} isMobile={isMobile}>
-                    <div
-                      className="h-full w-full cursor-pointer truncate pr-4 text-left text-[0.825rem] text-custom-text-100 focus:outline-none"
-                      tabIndex={-1}
-                    >
-                      {issueDetail.name}
-                    </div>
-                  </Tooltip>
-                </div>
-              </div>
-              <div
-                className={`hidden group-hover:block ${isMenuActive ? "!block" : ""}`}
-                onClick={(e) => e.stopPropagation()}
-              >
-                {quickActions({
-                  issue: issueDetail,
-                  parentRef: cellRef,
-                  customActionButton,
-                  portalElement: portalElement.current,
-                })}
-              </div>
-            </div>
-          </Row>
-        </ControlLink>
+            {rowContent}
+          </ControlLink>
+        )}
       </td>
       {/* Rest of the columns */}
       {spreadsheetColumnsList.map((property) => (

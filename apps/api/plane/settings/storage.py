@@ -46,13 +46,26 @@ class S3Storage(S3Boto3Storage):
                 config=boto3.session.Config(signature_version="s3v4"),
             )
         else:
+            # When the configured endpoint points to localhost, generate presigned
+            # URLs against the public proxy host (same pattern as USE_MINIO=1).
+            # Caddy proxies /{BUCKET_NAME}/* to plane-minio:9000, so the URL must
+            # use the public hostname without an explicit MinIO port.
+            endpoint_url = self.aws_s3_endpoint_url
+            if request and endpoint_url:
+                from urllib.parse import urlparse
+
+                parsed = urlparse(endpoint_url)
+                if parsed.hostname in ("localhost", "127.0.0.1"):
+                    scheme = request.scheme if request else parsed.scheme
+                    endpoint_url = f"{scheme}://{request.get_host()}"
+
             # Create an S3 client
             self.s3_client = boto3.client(
                 "s3",
                 aws_access_key_id=self.aws_access_key_id,
                 aws_secret_access_key=self.aws_secret_access_key,
                 region_name=self.aws_region,
-                endpoint_url=self.aws_s3_endpoint_url,
+                endpoint_url=endpoint_url,
                 config=boto3.session.Config(signature_version="s3v4"),
             )
 

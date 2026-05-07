@@ -1,7 +1,8 @@
 "use client";
 
+import type { KeyboardEvent } from "react";
 import { observer } from "mobx-react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 // ui
 import { Tooltip } from "@plane/propel/tooltip";
 import { ControlLink } from "@plane/ui";
@@ -32,6 +33,7 @@ type Props = {
 export const IssueGanttBlock: React.FC<Props> = observer((props) => {
   const { issueId, isEpic } = props;
   // router
+  const router = useRouter();
   const { workspaceSlug: routerWorkspaceSlug } = useParams();
   const workspaceSlug = routerWorkspaceSlug?.toString();
   // store hooks
@@ -42,6 +44,7 @@ export const IssueGanttBlock: React.FC<Props> = observer((props) => {
   // hooks
   const { isMobile } = usePlatformOS();
   const { handleRedirection } = useIssuePeekOverviewRedirection(isEpic);
+  const { getProjectIdentifierById } = useProject();
 
   // derived values
   const issueDetails = getIssueById(issueId);
@@ -50,9 +53,26 @@ export const IssueGanttBlock: React.FC<Props> = observer((props) => {
 
   const { message, blockStyle } = getBlockViewDetails(issueDetails, stateDetails?.color ?? "");
 
-  const handleIssuePeekOverview = () => handleRedirection(workspaceSlug, issueDetails, isMobile);
-
   const duration = findTotalDaysInRange(issueDetails?.start_date, issueDetails?.target_date) || 0;
+  const projectIdentifier = getProjectIdentifierById(issueDetails?.project_id);
+  const workItemLink = generateWorkItemLink({
+    workspaceSlug,
+    projectId: issueDetails?.project_id,
+    issueId,
+    projectIdentifier,
+    sequenceId: issueDetails?.sequence_id,
+  });
+
+  const handleIssuePeekOverview = () => {
+    if (isEpic) router.push(workItemLink);
+    else handleRedirection(workspaceSlug, issueDetails, isMobile);
+  };
+  const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      handleIssuePeekOverview();
+    }
+  };
 
   return (
     <Tooltip
@@ -70,7 +90,10 @@ export const IssueGanttBlock: React.FC<Props> = observer((props) => {
         id={`issue-${issueId}`}
         className="relative flex h-full w-full cursor-pointer items-center rounded space-between"
         style={blockStyle}
+        role="button"
+        tabIndex={0}
         onClick={handleIssuePeekOverview}
+        onKeyDown={handleKeyDown}
       >
         <div className="absolute left-0 top-0 h-full w-full bg-custom-background-100/50 " />
         <div
@@ -95,6 +118,7 @@ export const IssueGanttBlock: React.FC<Props> = observer((props) => {
 export const IssueGanttSidebarBlock: React.FC<Props> = observer((props) => {
   const { issueId, isEpic = false } = props;
   // router
+  const router = useRouter();
   const { workspaceSlug: routerWorkspaceSlug } = useParams();
   const workspaceSlug = routerWorkspaceSlug?.toString();
   // store hooks
@@ -116,7 +140,14 @@ export const IssueGanttSidebarBlock: React.FC<Props> = observer((props) => {
   const handleIssuePeekOverview = (e: any) => {
     e.stopPropagation(true);
     e.preventDefault();
-    handleRedirection(workspaceSlug, issueDetails, isMobile);
+    if (isEpic) router.push(workItemLink);
+    else handleRedirection(workspaceSlug, issueDetails, isMobile);
+  };
+  const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      router.push(workItemLink);
+    }
   };
 
   const workItemLink = generateWorkItemLink({
@@ -125,30 +156,48 @@ export const IssueGanttSidebarBlock: React.FC<Props> = observer((props) => {
     issueId,
     projectIdentifier,
     sequenceId: issueDetails?.sequence_id,
-    isEpic,
   });
+
+  const content = (
+    <div className="relative flex h-full w-full cursor-pointer items-center gap-2">
+      {issueDetails?.project_id && (
+        <IssueIdentifier
+          issueId={issueDetails.id}
+          projectId={issueDetails.project_id}
+          textContainerClassName="text-xs text-custom-text-300"
+          displayProperties={issuesFilter?.issueFilters?.displayProperties}
+        />
+      )}
+      <Tooltip tooltipContent={issueDetails?.name} isMobile={isMobile}>
+        <span className="flex-grow truncate text-sm font-medium">{issueDetails?.name}</span>
+      </Tooltip>
+    </div>
+  );
+
+  if (isEpic)
+    return (
+      <div
+        id={`issue-${issueId}`}
+        role="button"
+        tabIndex={0}
+        onClick={() => router.push(workItemLink)}
+        onKeyDown={handleKeyDown}
+        className="line-clamp-1 w-full cursor-pointer text-sm text-custom-text-100"
+      >
+        {content}
+      </div>
+    );
 
   return (
     <ControlLink
       id={`issue-${issueId}`}
       href={workItemLink}
+      target="_self"
       onClick={handleIssuePeekOverview}
       className="line-clamp-1 w-full cursor-pointer text-sm text-custom-text-100"
       disabled={!!issueDetails?.tempId}
     >
-      <div className="relative flex h-full w-full cursor-pointer items-center gap-2">
-        {issueDetails?.project_id && (
-          <IssueIdentifier
-            issueId={issueDetails.id}
-            projectId={issueDetails.project_id}
-            textContainerClassName="text-xs text-custom-text-300"
-            displayProperties={issuesFilter?.issueFilters?.displayProperties}
-          />
-        )}
-        <Tooltip tooltipContent={issueDetails?.name} isMobile={isMobile}>
-          <span className="flex-grow truncate text-sm font-medium">{issueDetails?.name}</span>
-        </Tooltip>
-      </div>
+      {content}
     </ControlLink>
   );
 });

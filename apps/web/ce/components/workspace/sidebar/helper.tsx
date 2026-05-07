@@ -3,6 +3,7 @@ import {
   ArchiveIcon,
   CycleIcon,
   DraftIcon,
+  EpicIcon,
   HomeIcon,
   InboxIcon,
   ProjectIcon,
@@ -31,5 +32,7 @@ export const getSidebarNavigationItemIcon = (key: string, className: string = ""
       return <DraftIcon className={cn("size-4 flex-shrink-0", className)} />;
     case "archives":
       return <ArchiveIcon className={cn("size-4 flex-shrink-0", className)} />;
+    case "initiatives":
+      return <EpicIcon className={cn("size-4 flex-shrink-0", className)} />;
   }
 };

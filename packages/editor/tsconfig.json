@@ -14,14 +14,16 @@
 
     "paths": {
       "@/*": ["./src/core/*"],
-      "@/styles/*": ["./src/styles/*"],
+      "@/styles/*": [".Create Tasks and Subtasks with recursive parent-ID mapping from a User Story/src/styles/*"],
       "@/plane-editor/*": ["./src/ce/*"],
 
       "@plane/constants": ["../constants/src"],
       "@plane/types": ["../types/src"],
       "@plane/hooks": ["../hooks/src"],
       "@plane/ui": ["../ui/src"],
-      "@plane/utils": ["../utils/src"]
+      "@plane/utils": ["../utils/src"],
+      "@plane/propel": ["../propel/src"],
+      "@plane/propel/*": ["../propel/src/*"]
     },
 
     "strictNullChecks": true,

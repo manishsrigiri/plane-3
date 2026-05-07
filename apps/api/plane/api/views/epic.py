@@ -7,12 +7,14 @@ from rest_framework.response import Response
 
 # Module imports
 from plane.api.serializers import IssueSerializer
-from plane.api.serializers.epic import EpicSerializer
+from plane.api.serializers.epic import EpicSerializer, EpicListSerializer
 from plane.app.permissions import ProjectEntityPermission
+from plane.authentication.session import BaseSessionAuthentication
 from plane.db.models import (
     Issue,
     IssueType,
     Project,
+    EpicUpdate,
 )
 from .base import BaseAPIView
 
@@ -50,7 +52,7 @@ class EpicListCreateAPIView(BaseAPIView):
         """List all Epics in the project"""
         try:
             queryset = self.get_queryset()
-            serializer = EpicSerializer(queryset, many=True)
+            serializer = EpicListSerializer(queryset, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Exception as e:
             return Response(
@@ -266,3 +268,118 @@ class EpicIssuesAPIView(BaseAPIView):
                 {"error": str(e)},
                 status=status.HTTP_400_BAD_REQUEST
             )
+
+
+class EpicProgressAPIView(BaseAPIView):
+    """
+    GET /epics/{epic_id}/progress/
+    Returns aggregated progress of all child issues grouped by state group.
+    """
+
+    authentication_classes = [BaseSessionAuthentication]
+    permission_classes = [ProjectEntityPermission]
+
+    def get(self, request, slug, project_id, epic_id):
+        try:
+            epic_type = IssueType.objects.filter(workspace__slug=slug, is_epic=True).first()
+            if not epic_type:
+                return Response({"error": "Epic type not configured"}, status=status.HTTP_400_BAD_REQUEST)
+
+            epic = Issue.objects.filter(
+                id=epic_id, type=epic_type, project_id=project_id, workspace__slug=slug
+            ).first()
+            if not epic:
+                return Response({"error": "Epic not found"}, status=status.HTTP_404_NOT_FOUND)
+
+            children = Issue.objects.filter(
+                parent=epic, deleted_at__isnull=True
+            ).exclude(type=epic_type)
+
+            total = children.count()
+            group_counts = {
+                "backlog": children.filter(state__group="backlog").count(),
+                "unstarted": children.filter(state__group="unstarted").count(),
+                "started": children.filter(state__group="started").count(),
+                "completed": children.filter(state__group="completed").count(),
+                "cancelled": children.filter(state__group="cancelled").count(),
+            }
+            completed_and_cancelled = group_counts["completed"] + group_counts["cancelled"]
+            percentage = round((completed_and_cancelled / total) * 100) if total > 0 else 0
+
+            return Response(
+                {
+                    "epic_id": str(epic_id),
+                    "total": total,
+                    "percentage": percentage,
+                    "breakdown": group_counts,
+                },
+                status=status.HTTP_200_OK,
+            )
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class EpicUpdateAPIView(BaseAPIView):
+    """
+    GET  /epics/{epic_id}/updates/  — list updates newest-first
+    POST /epics/{epic_id}/updates/  — add a new update { status, comment }
+    """
+
+    authentication_classes = [BaseSessionAuthentication]
+    permission_classes = [ProjectEntityPermission]
+
+    def _get_epic(self, slug, project_id, epic_id):
+        epic_type = IssueType.objects.filter(workspace__slug=slug, is_epic=True).first()
+        if not epic_type:
+            return None
+        return Issue.objects.filter(
+            id=epic_id, type=epic_type, project_id=project_id, workspace__slug=slug
+        ).first()
+
+    def get(self, request, slug, project_id, epic_id):
+        epic = self._get_epic(slug, project_id, epic_id)
+        if not epic:
+            return Response({"error": "Epic not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        updates = EpicUpdate.objects.filter(epic=epic).select_related("created_by")
+        data = [
+            {
+                "id": str(u.id),
+                "status": u.status,
+                "comment": u.comment,
+                "created_at": u.created_at,
+                "created_by": str(u.created_by_id) if u.created_by_id else None,
+                "created_by_display_name": u.created_by.display_name if u.created_by else None,
+            }
+            for u in updates
+        ]
+        return Response(data, status=status.HTTP_200_OK)
+
+    def post(self, request, slug, project_id, epic_id):
+        epic = self._get_epic(slug, project_id, epic_id)
+        if not epic:
+            return Response({"error": "Epic not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        status_value = request.data.get("status", "on_track")
+        if status_value not in ("on_track", "at_risk", "off_track"):
+            return Response(
+                {"error": "status must be one of: on_track, at_risk, off_track"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        update = EpicUpdate.objects.create(
+            epic=epic,
+            status=status_value,
+            comment=request.data.get("comment", ""),
+            created_by=request.user,
+        )
+        return Response(
+            {
+                "id": str(update.id),
+                "status": update.status,
+                "comment": update.comment,
+                "created_at": update.created_at,
+                "created_by": str(update.created_by_id),
+            },
+            status=status.HTTP_201_CREATED,
+        )

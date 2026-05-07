@@ -38,6 +38,8 @@ from plane.db.models import (
     IssueDescriptionVersion,
     ProjectMember,
     EstimatePoint,
+    IssueType,
+    ProjectIssueType,
 )
 from plane.utils.content_validator import (
     validate_html_content,
@@ -179,6 +181,29 @@ class IssueCreateSerializer(BaseSerializer):
             ).exists()
         ):
             raise serializers.ValidationError("Parent is not valid issue_id please pass a valid issue_id")
+
+        # Validate type_id belongs to this project (if provided)
+        issue_type = attrs.get("type")
+        if issue_type:
+            if not ProjectIssueType.objects.filter(
+                project_id=self.context.get("project_id"),
+                issue_type=issue_type,
+                deleted_at__isnull=True,
+            ).exists():
+                raise serializers.ValidationError(
+                    {"type_id": "The selected work item type is not assigned to this project."}
+                )
+            # User Story (non-epic with a parent) → parent must be an Epic
+            if not issue_type.is_epic and attrs.get("parent"):
+                parent = attrs.get("parent")
+                parent_is_epic = Issue.objects.filter(
+                    pk=parent.id,
+                    type__is_epic=True,
+                ).exists()
+                if not parent_is_epic:
+                    raise serializers.ValidationError(
+                        {"parent_id": "A User Story's parent must be an Epic."}
+                    )
 
         # Validate epic_id — must be a real epic in the same project
         epic = attrs.get("epic")
@@ -796,6 +821,7 @@ class IssueSerializer(DynamicBaseSerializer):
             "project_id",
             "parent_id",
             "epic_id",
+            "type_id",
             "cycle_id",
             "module_ids",
             "label_ids",
@@ -846,6 +872,7 @@ class IssueListDetailSerializer(serializers.Serializer):
             "project_id": instance.project_id,
             "parent_id": instance.parent_id,
             "epic_id": instance.epic_id,
+            "type_id": instance.type_id,
             "created_at": instance.created_at,
             "updated_at": instance.updated_at,
             "created_by": instance.created_by_id,
@@ -926,14 +953,21 @@ class IssueLiteSerializer(DynamicBaseSerializer):
 
 class IssueDetailSerializer(IssueSerializer):
     description_html = serializers.CharField()
+    acceptance_criteria_html = serializers.CharField(default="<p></p>")
     is_subscribed = serializers.BooleanField(read_only=True)
     is_intake = serializers.BooleanField(read_only=True)
+    is_epic = serializers.SerializerMethodField()
+
+    def get_is_epic(self, obj):
+        return obj.type.is_epic if obj.type_id and obj.type else False
 
     class Meta(IssueSerializer.Meta):
         fields = IssueSerializer.Meta.fields + [
             "description_html",
+            "acceptance_criteria_html",
             "is_subscribed",
             "is_intake",
+            "is_epic",
         ]
         read_only_fields = fields
 

@@ -74,12 +74,30 @@ export class EditorAssetStore implements IEditorAssetStore {
     });
   }, 16);
 
+  private async withRetry<T>(
+    fn: () => Promise<T>,
+    maxAttempts = 3,
+    baseDelayMs = 800
+  ): Promise<T> {
+    let lastError: unknown;
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      try {
+        return await fn();
+      } catch (err) {
+        lastError = err;
+        if (attempt < maxAttempts - 1) {
+          await new Promise((resolve) => setTimeout(resolve, baseDelayMs * 2 ** attempt));
+        }
+      }
+    }
+    throw lastError;
+  }
+
   uploadEditorAsset: IEditorAssetStore["uploadEditorAsset"] = async (args) => {
     const { blockId, data, file, projectId, workspaceSlug } = args;
     const tempId = uuidv4();
 
     try {
-      // update attachment upload status
       runInAction(() => {
         set(this.assetsUploadStatus, [blockId], {
           id: tempId,
@@ -89,27 +107,19 @@ export class EditorAssetStore implements IEditorAssetStore {
           type: file.type,
         });
       });
-      if (projectId) {
-        const response = await this.fileService.uploadProjectAsset(
-          workspaceSlug,
-          projectId,
-          data,
-          file,
-          (progressEvent) => {
-            const progressPercentage = Math.round((progressEvent.progress ?? 0) * 100);
-            this.debouncedUpdateProgress(blockId, progressPercentage);
-          }
-        );
-        return response;
-      } else {
-        const response = await this.fileService.uploadWorkspaceAsset(workspaceSlug, data, file, (progressEvent) => {
-          const progressPercentage = Math.round((progressEvent.progress ?? 0) * 100);
-          this.debouncedUpdateProgress(blockId, progressPercentage);
+
+      return await this.withRetry(async () => {
+        if (projectId) {
+          return this.fileService.uploadProjectAsset(workspaceSlug, projectId, data, file, (progressEvent) => {
+            this.debouncedUpdateProgress(blockId, Math.round((progressEvent.progress ?? 0) * 100));
+          });
+        }
+        return this.fileService.uploadWorkspaceAsset(workspaceSlug, data, file, (progressEvent) => {
+          this.debouncedUpdateProgress(blockId, Math.round((progressEvent.progress ?? 0) * 100));
         });
-        return response;
-      }
+      });
     } catch (error) {
-      console.error("Error in uploading page asset:", error);
+      console.error("Error uploading editor asset after retries:", error);
       throw error;
     } finally {
       runInAction(() => {

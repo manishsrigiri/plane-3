@@ -121,3 +121,41 @@ class EpicSerializer(BaseSerializer):
         """Prevent type change on update"""
         validated_data.pop("type", None)
         return super().update(instance, validated_data)
+
+
+class EpicListSerializer(BaseSerializer):
+    """Lightweight serializer for list views — omits description fields."""
+
+    total_issues = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Issue
+        fields = [
+            "id",
+            "name",
+            "type",
+            "priority",
+            "start_date",
+            "target_date",
+            "state",
+            "sequence_id",
+            "total_issues",
+            "project",
+            "created_by",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = [
+            "id",
+            "type",
+            "sequence_id",
+            "created_by",
+            "created_at",
+            "updated_at",
+            "project",
+        ]
+
+    def get_total_issues(self, obj):
+        from plane.db.models import IssueType
+        epic_type = IssueType.objects.filter(workspace=obj.project.workspace, is_epic=True).first()
+        return Issue.objects.filter(parent=obj).exclude(type=epic_type).count()

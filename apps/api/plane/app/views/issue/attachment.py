@@ -123,6 +123,13 @@ class IssueAttachmentV2Endpoint(BaseAPIView):
         # Generate a presigned URL to share an S3 object
         presigned_url = storage.generate_presigned_post(object_name=asset_key, file_type=type, file_size=size_limit)
 
+        if presigned_url is None:
+            asset.delete()
+            return Response(
+                {"error": "Failed to generate upload URL. Storage service may be unavailable.", "status": False},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+
         # Return the presigned URL
         return Response(
             {

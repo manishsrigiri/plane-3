@@ -18,6 +18,8 @@ from .webhook import urlpatterns as webhook_urls
 from .workspace import urlpatterns as workspace_urls
 from .timezone import urlpatterns as timezone_urls
 from .exporter import urlpatterns as exporter_urls
+from .initiative import urlpatterns as initiative_urls
+from .work_item_type import urlpatterns as work_item_type_urls
 
 urlpatterns = [
     *analytic_urls,
@@ -40,4 +42,6 @@ urlpatterns = [
     *webhook_urls,
     *timezone_urls,
     *exporter_urls,
+    *initiative_urls,
+    *work_item_type_urls,
 ]

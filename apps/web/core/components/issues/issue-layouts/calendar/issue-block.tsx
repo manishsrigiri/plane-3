@@ -1,9 +1,10 @@
 "use client";
 
 /* eslint-disable react/display-name */
+import type { KeyboardEvent, Ref } from "react";
 import { useState, useRef, forwardRef } from "react";
 import { observer } from "mobx-react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { MoreHorizontal } from "lucide-react";
 // plane helpers
 import { useOutsideClickDetector } from "@plane/hooks";
@@ -36,7 +37,7 @@ type Props = {
 };
 
 export const CalendarIssueBlock = observer(
-  forwardRef<HTMLAnchorElement, Props>((props, ref) => {
+  forwardRef<HTMLElement, Props>((props, ref) => {
     const { issue, quickActions, isDragging = false, isEpic = false } = props;
     // states
     const [isMenuActive, setIsMenuActive] = useState(false);
@@ -44,6 +45,7 @@ export const CalendarIssueBlock = observer(
     const blockRef = useRef(null);
     const menuActionRef = useRef<HTMLDivElement | null>(null);
     // hooks
+    const router = useRouter();
     const { workspaceSlug } = useParams();
     const { getProjectStates } = useProjectState();
     const { getIsIssuePeeked } = useIssueDetail();
@@ -56,9 +58,6 @@ export const CalendarIssueBlock = observer(
     const stateColor = getProjectStates(issue?.project_id)?.find((state) => state?.id == issue?.state_id)?.color || "";
     const projectIdentifier = getProjectIdentifierById(issue?.project_id);
 
-    // handlers
-    const handleIssuePeekOverview = (issue: TIssue) => handleRedirection(workspaceSlug.toString(), issue, isMobile);
-
     useOutsideClickDetector(menuActionRef, () => setIsMenuActive(false));
 
     const customActionButton = (
@@ -67,7 +66,10 @@ export const CalendarIssueBlock = observer(
         className={`w-full cursor-pointer rounded p-1 text-custom-sidebar-text-400 hover:bg-custom-background-80 ${
           isMenuActive ? "bg-custom-background-80 text-custom-text-100" : "text-custom-text-200"
         }`}
-        onClick={() => setIsMenuActive(!isMenuActive)}
+        onClick={(e) => {
+          e.stopPropagation();
+          setIsMenuActive(!isMenuActive);
+        }}
       >
         <MoreHorizontal className="h-3.5 w-3.5" />
       </div>
@@ -84,73 +86,104 @@ export const CalendarIssueBlock = observer(
       issueId: issue?.id,
       projectIdentifier,
       sequenceId: issue?.sequence_id,
-      isEpic,
       isArchived: !!issue?.archived_at,
     });
+
+    // handlers
+    const handleIssuePeekOverview = (issue: TIssue) => {
+      if (isEpic) router.push(workItemLink);
+      else handleRedirection(workspaceSlug.toString(), issue, isMobile);
+    };
+    const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        router.push(workItemLink);
+      }
+    };
+
+    const content = (
+      <>
+        {issue?.tempId !== undefined && (
+          <div className="absolute left-0 top-0 z-[99999] h-full w-full animate-pulse bg-custom-background-100/20" />
+        )}
+
+        <div
+          ref={blockRef}
+          className={cn(
+            "group/calendar-block flex h-10 md:h-8 w-full items-center justify-between gap-1.5 rounded  md:px-1 px-4 py-1.5 ",
+            {
+              "bg-custom-background-90 shadow-custom-shadow-rg border-custom-primary-100": isDragging,
+              "bg-custom-background-100 hover:bg-custom-background-90": !isDragging,
+              "border border-custom-primary-70 hover:border-custom-primary-70": getIsIssuePeeked(issue.id),
+            }
+          )}
+        >
+          <div className="flex h-full items-center gap-1.5 truncate">
+            <span
+              className="h-full w-0.5 flex-shrink-0 rounded"
+              style={{
+                backgroundColor: stateColor,
+              }}
+            />
+            {issue.project_id && (
+              <IssueIdentifier
+                issueId={issue.id}
+                projectId={issue.project_id}
+                textContainerClassName="text-sm md:text-xs text-custom-text-300"
+                displayProperties={issuesFilter?.issueFilters?.displayProperties}
+              />
+            )}
+            <Tooltip tooltipContent={issue.name} isMobile={isMobile}>
+              <div className="truncate text-sm font-medium md:font-normal md:text-xs">{issue.name}</div>
+            </Tooltip>
+          </div>
+          <div
+            className={cn("flex-shrink-0 size-5", {
+              "hidden group-hover/calendar-block:block": !isMobile,
+              block: isMenuActive,
+            })}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
+          >
+            {quickActions({
+              issue,
+              parentRef: blockRef,
+              customActionButton,
+              placement,
+            })}
+          </div>
+        </div>
+      </>
+    );
+
+    if (isEpic)
+      return (
+        <div
+          id={`issue-${issue.id}`}
+          ref={ref as Ref<HTMLDivElement>}
+          role="button"
+          tabIndex={0}
+          onClick={() => handleIssuePeekOverview(issue)}
+          onKeyDown={handleKeyDown}
+          className="block w-full cursor-pointer text-sm text-custom-text-100 rounded border-b md:border-[1px] border-custom-border-200 hover:border-custom-border-400"
+        >
+          {content}
+        </div>
+      );
 
     return (
       <ControlLink
         id={`issue-${issue.id}`}
         href={workItemLink}
+        target="_self"
         onClick={() => handleIssuePeekOverview(issue)}
         className="block w-full text-sm text-custom-text-100 rounded border-b md:border-[1px] border-custom-border-200 hover:border-custom-border-400"
         disabled={!!issue?.tempId || isMobile}
-        ref={ref}
+        ref={ref as Ref<HTMLAnchorElement>}
       >
-        <>
-          {issue?.tempId !== undefined && (
-            <div className="absolute left-0 top-0 z-[99999] h-full w-full animate-pulse bg-custom-background-100/20" />
-          )}
-
-          <div
-            ref={blockRef}
-            className={cn(
-              "group/calendar-block flex h-10 md:h-8 w-full items-center justify-between gap-1.5 rounded  md:px-1 px-4 py-1.5 ",
-              {
-                "bg-custom-background-90 shadow-custom-shadow-rg border-custom-primary-100": isDragging,
-                "bg-custom-background-100 hover:bg-custom-background-90": !isDragging,
-                "border border-custom-primary-70 hover:border-custom-primary-70": getIsIssuePeeked(issue.id),
-              }
-            )}
-          >
-            <div className="flex h-full items-center gap-1.5 truncate">
-              <span
-                className="h-full w-0.5 flex-shrink-0 rounded"
-                style={{
-                  backgroundColor: stateColor,
-                }}
-              />
-              {issue.project_id && (
-                <IssueIdentifier
-                  issueId={issue.id}
-                  projectId={issue.project_id}
-                  textContainerClassName="text-sm md:text-xs text-custom-text-300"
-                  displayProperties={issuesFilter?.issueFilters?.displayProperties}
-                />
-              )}
-              <Tooltip tooltipContent={issue.name} isMobile={isMobile}>
-                <div className="truncate text-sm font-medium md:font-normal md:text-xs">{issue.name}</div>
-              </Tooltip>
-            </div>
-            <div
-              className={cn("flex-shrink-0 size-5", {
-                "hidden group-hover/calendar-block:block": !isMobile,
-                block: isMenuActive,
-              })}
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-              }}
-            >
-              {quickActions({
-                issue,
-                parentRef: blockRef,
-                customActionButton,
-                placement,
-              })}
-            </div>
-          </div>
-        </>
+        {content}
       </ControlLink>
     );
   })

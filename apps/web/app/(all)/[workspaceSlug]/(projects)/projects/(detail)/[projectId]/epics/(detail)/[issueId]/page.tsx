@@ -5,6 +5,7 @@ import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 import { useTheme } from "next-themes";
 import useSWR from "swr";
+import { EIssueServiceType } from "@plane/types";
 import { useTranslation } from "@plane/i18n";
 import { EmptyState } from "@/components/common/empty-state";
 import { LogoSpinner } from "@/components/common/logo-spinner";
@@ -13,7 +14,7 @@ import emptyIssueDark from "@/public/empty-state/search/issues-dark.webp";
 import emptyIssueLight from "@/public/empty-state/search/issues-light.webp";
 import { IssueService } from "@/services/issue/issue.service";
 
-const issueService = new IssueService();
+const issueService = new IssueService(EIssueServiceType.EPICS);
 
 const EpicDetailsPage = observer(() => {
   const router = useAppRouter();
@@ -30,7 +31,7 @@ const EpicDetailsPage = observer(() => {
 
   useEffect(() => {
     if (data) {
-      router.push(`/${workspaceSlug}/browse/${data.project_identifier}-${data.sequence_id}`);
+      router.replace(`/${workspaceSlug}/browse/${data.project_identifier}-${data.sequence_id}`);
     }
   }, [workspaceSlug, data]);
 

@@ -49,6 +49,8 @@ from .epic import (
     EpicListCreateAPIView,
     EpicDetailAPIView,
     EpicIssuesAPIView,
+    EpicProgressAPIView,
+    EpicUpdateAPIView,
 )
 
 from .intake import (

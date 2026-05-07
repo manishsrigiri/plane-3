@@ -62,6 +62,10 @@ import type { IUserStore } from "./user";
 import { UserStore } from "./user";
 import type { IWorkspaceRootStore } from "./workspace";
 import { WorkspaceRootStore } from "./workspace";
+import type { IInitiativeStore } from "./initiative.store";
+import { InitiativeStore } from "./initiative.store";
+import type { IWorkItemTypeStore } from "./work-item-type.store";
+import { WorkItemTypeStore } from "./work-item-type.store";
 
 enableStaticRendering(typeof window === "undefined");
 
@@ -95,6 +99,8 @@ export class CoreRootStore {
   stickyStore: IStickyStore;
   editorAssetStore: IEditorAssetStore;
   workItemFilters: IWorkItemFilterStore;
+  initiative: IInitiativeStore;
+  workItemType: IWorkItemTypeStore;
 
   constructor() {
     this.router = new RouterStore();
@@ -126,6 +132,8 @@ export class CoreRootStore {
     this.editorAssetStore = new EditorAssetStore();
     this.analytics = new AnalyticsStore();
     this.workItemFilters = new WorkItemFilterStore();
+    this.initiative = new InitiativeStore();
+    this.workItemType = new WorkItemTypeStore();
   }
 
   resetOnSignOut() {

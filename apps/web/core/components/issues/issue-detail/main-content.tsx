@@ -14,6 +14,7 @@ import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 import { useMember } from "@/hooks/store/use-member";
 import { useProject } from "@/hooks/store/use-project";
 import { useUser } from "@/hooks/store/user";
+import { useWorkItemType } from "@/hooks/store/use-work-item-type";
 import useReloadConfirmations from "@/hooks/use-reload-confirmation";
 import useSize from "@/hooks/use-window-size";
 // plane web components
@@ -23,6 +24,7 @@ import { useDebouncedDuplicateIssues } from "@/plane-web/hooks/use-debounced-dup
 // services
 import { WorkItemVersionService } from "@/services/issue";
 // local imports
+import { AcceptanceCriteriaInput } from "../acceptance-criteria-input";
 import { IssueDescriptionInput } from "../description-input";
 import { IssueDetailWidgets } from "../issue-detail-widgets";
 import { NameDescriptionUpdateStatus } from "../issue-update-status";
@@ -32,6 +34,8 @@ import { IssueActivity } from "./issue-activity";
 import { IssueParentDetail } from "./parent";
 import { IssueReaction } from "./reactions";
 import type { TIssueOperations } from "./root";
+import { EpicProgressWidget } from "./epic-progress-widget";
+import { EpicUpdatePanel } from "./epic-update-panel";
 // services init
 const workItemVersionService = new WorkItemVersionService();
 
@@ -60,9 +64,13 @@ export const IssueMainContent: React.FC<Props> = observer((props) => {
   } = useIssueDetail();
   const { getProjectById } = useProject();
   const { setShowAlert } = useReloadConfirmations(isSubmitting === "submitting");
+  const workItemTypeStore = useWorkItemType();
   // derived values
   const projectDetails = getProjectById(projectId);
   const issue = issueId ? getIssueById(issueId) : undefined;
+  const isUserStory =
+    !!issue?.type_id && issue.type_id === workItemTypeStore.getUserStoryType(projectId)?.id;
+  const isEpic = issue?.is_epic === true;
   // debounced duplicate issues swr
   const { duplicateIssues } = useDebouncedDuplicateIssues(
     workspaceSlug,
@@ -140,6 +148,38 @@ export const IssueMainContent: React.FC<Props> = observer((props) => {
           setIsSubmitting={(value) => setIsSubmitting(value)}
           containerClassName="-ml-3 border-none"
         />
+
+        {isUserStory && (
+          <AcceptanceCriteriaInput
+            workspaceSlug={workspaceSlug}
+            projectId={issue.project_id}
+            issueId={issue.id}
+            initialValue={issue.acceptance_criteria_html ?? "<p></p>"}
+            disabled={isArchived || !isEditable}
+            issueOperations={issueOperations}
+            setIsSubmitting={(value) => setIsSubmitting(value)}
+            containerClassName="-ml-3 border-none"
+          />
+        )}
+
+        {isEpic && issue.project_id && (
+          <div className="rounded-lg border border-custom-border-200 bg-custom-background-100 p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xs font-semibold text-custom-text-200 uppercase tracking-wide">Epic Progress</h3>
+              <EpicUpdatePanel
+                workspaceSlug={workspaceSlug}
+                projectId={issue.project_id}
+                epicId={issue.id}
+                canEdit={isEditable && !isArchived}
+              />
+            </div>
+            <EpicProgressWidget
+              workspaceSlug={workspaceSlug}
+              projectId={issue.project_id}
+              epicId={issue.id}
+            />
+          </div>
+        )}
 
         <div className="flex items-center justify-between gap-2">
           {currentUser && (

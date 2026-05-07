@@ -1,11 +1,11 @@
 "use client";
 
-import type { MutableRefObject } from "react";
+import type { KeyboardEvent, MutableRefObject, RefObject } from "react";
 import { useEffect, useRef, useState } from "react";
 import { combine } from "@atlaskit/pragmatic-drag-and-drop/combine";
 import { draggable, dropTargetForElements } from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
 import { observer } from "mobx-react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 // plane helpers
 import { MoreHorizontal } from "lucide-react";
 import { useOutsideClickDetector } from "@plane/hooks";
@@ -77,7 +77,10 @@ const KanbanIssueDetailsBlock: React.FC<IssueDetailsBlockProps> = observer((prop
       className={`flex items-center h-full w-full cursor-pointer rounded p-1 text-custom-sidebar-text-400 hover:bg-custom-background-80 ${
         isMenuActive ? "bg-custom-background-80 text-custom-text-100" : "text-custom-text-200"
       }`}
-      onClick={() => setIsMenuActive(!isMenuActive)}
+      onClick={(e) => {
+        e.stopPropagation();
+        setIsMenuActive(!isMenuActive);
+      }}
     >
       <MoreHorizontal className="h-3.5 w-3.5" />
     </div>
@@ -125,15 +128,17 @@ const KanbanIssueDetailsBlock: React.FC<IssueDetailsBlockProps> = observer((prop
         </div>
       </Tooltip>
 
-      <IssueProperties
-        className="flex flex-wrap items-center gap-2 whitespace-nowrap text-custom-text-300 pt-1.5"
-        issue={issue}
-        displayProperties={displayProperties}
-        activeLayout="Kanban"
-        updateIssue={updateIssue}
-        isReadOnly={isReadOnly}
-        isEpic={isEpic}
-      />
+      <div onClick={(e) => isEpic && e.stopPropagation()} className="cursor-default">
+        <IssueProperties
+          className="flex flex-wrap items-center gap-2 whitespace-nowrap text-custom-text-300 pt-1.5"
+          issue={issue}
+          displayProperties={displayProperties}
+          activeLayout="Kanban"
+          updateIssue={updateIssue}
+          isReadOnly={isReadOnly}
+          isEpic={isEpic}
+        />
+      </div>
 
       {isEpic && displayProperties && (
         <WithDisplayPropertiesHOC
@@ -165,8 +170,9 @@ export const KanbanIssueBlock: React.FC<IssueBlockProps> = observer((props) => {
     isEpic = false,
   } = props;
 
-  const cardRef = useRef<HTMLAnchorElement | null>(null);
+  const cardRef = useRef<HTMLElement | null>(null);
   // router
+  const router = useRouter();
   const { workspaceSlug: routerWorkspaceSlug } = useParams();
   const workspaceSlug = routerWorkspaceSlug?.toString();
   // hooks
@@ -196,9 +202,15 @@ export const KanbanIssueBlock: React.FC<IssueBlockProps> = observer((props) => {
     issueId,
     projectIdentifier,
     sequenceId: issue?.sequence_id,
-    isEpic,
     isArchived: !!issue?.archived_at,
   });
+  const handleEpicNavigation = () => router.push(workItemLink);
+  const handleEpicKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      handleEpicNavigation();
+    }
+  };
 
   useOutsideClickDetector(cardRef, () => {
     cardRef?.current?.classList?.remove(HIGHLIGHT_CLASS);
@@ -245,6 +257,34 @@ export const KanbanIssueBlock: React.FC<IssueBlockProps> = observer((props) => {
 
   if (!issue) return null;
 
+  const cardClassName = cn(
+    "block rounded border-[1px] outline-[0.5px] outline-transparent w-full border-custom-border-200 bg-custom-background-100 text-sm transition-all hover:border-custom-border-400",
+    { "hover:cursor-pointer": isDragAllowed },
+    { "border border-custom-primary-70 hover:border-custom-primary-70": getIsIssuePeeked(issue.id) },
+    { "bg-custom-background-80 z-[100]": isCurrentBlockDragging }
+  );
+
+  const cardContent = (
+    <RenderIfVisible
+      classNames="space-y-2 px-3 py-2"
+      root={scrollableContainerRef}
+      defaultHeight="100px"
+      horizontalOffset={100}
+      verticalOffset={200}
+      defaultValue={shouldRenderByDefault}
+    >
+      <KanbanIssueDetailsBlock
+        cardRef={cardRef}
+        issue={issue}
+        displayProperties={displayProperties}
+        updateIssue={updateIssue}
+        quickActions={quickActions}
+        isReadOnly={!canEditIssueProperties}
+        isEpic={isEpic}
+      />
+    </RenderIfVisible>
+  );
+
   return (
     <>
       <DropIndicator isVisible={!isCurrentBlockDragging && isDraggingOverBlock} />
@@ -265,38 +305,31 @@ export const KanbanIssueBlock: React.FC<IssueBlockProps> = observer((props) => {
           }
         }}
       >
-        <ControlLink
-          id={getIssueBlockId(issueId, groupId, subGroupId)}
-          href={workItemLink}
-          ref={cardRef}
-          className={cn(
-            "block rounded border-[1px] outline-[0.5px] outline-transparent w-full border-custom-border-200 bg-custom-background-100 text-sm transition-all hover:border-custom-border-400",
-            { "hover:cursor-pointer": isDragAllowed },
-            { "border border-custom-primary-70 hover:border-custom-primary-70": getIsIssuePeeked(issue.id) },
-            { "bg-custom-background-80 z-[100]": isCurrentBlockDragging }
-          )}
-          onClick={() => handleIssuePeekOverview(issue)}
-          disabled={!!issue?.tempId}
-        >
-          <RenderIfVisible
-            classNames="space-y-2 px-3 py-2"
-            root={scrollableContainerRef}
-            defaultHeight="100px"
-            horizontalOffset={100}
-            verticalOffset={200}
-            defaultValue={shouldRenderByDefault}
+        {isEpic ? (
+          <div
+            id={getIssueBlockId(issueId, groupId, subGroupId)}
+            ref={cardRef as RefObject<HTMLDivElement>}
+            role="button"
+            tabIndex={0}
+            className={cn(cardClassName, "cursor-pointer")}
+            onClick={handleEpicNavigation}
+            onKeyDown={handleEpicKeyDown}
           >
-            <KanbanIssueDetailsBlock
-              cardRef={cardRef}
-              issue={issue}
-              displayProperties={displayProperties}
-              updateIssue={updateIssue}
-              quickActions={quickActions}
-              isReadOnly={!canEditIssueProperties}
-              isEpic={isEpic}
-            />
-          </RenderIfVisible>
-        </ControlLink>
+            {cardContent}
+          </div>
+        ) : (
+          <ControlLink
+            id={getIssueBlockId(issueId, groupId, subGroupId)}
+            href={workItemLink}
+            target="_self"
+            ref={cardRef as RefObject<HTMLAnchorElement>}
+            className={cardClassName}
+            onClick={() => handleIssuePeekOverview(issue)}
+            disabled={!!issue?.tempId}
+          >
+            {cardContent}
+          </ControlLink>
+        )}
       </div>
     </>
   );

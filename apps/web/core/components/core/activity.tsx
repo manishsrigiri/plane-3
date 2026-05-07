@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { observer } from "mobx-react";
+import Link from "next/link";
 import { useParams } from "next/navigation";
 // store hooks
 // icons
@@ -48,6 +49,9 @@ export const IssueLink = ({ activity }: { activity: IIssueActivity }) => {
     issueId: activity?.issue,
     projectIdentifier: activity?.project_detail?.identifier,
     sequenceId: activity?.issue_detail?.sequence_id,
+    isEpic:
+      activity.field === "epic" ||
+      !!(activity.issue_detail as NonNullable<IIssueActivity["issue_detail"]> & { is_epic?: boolean })?.is_epic,
   });
 
   return (
@@ -56,16 +60,14 @@ export const IssueLink = ({ activity }: { activity: IIssueActivity }) => {
       isMobile={isMobile}
     >
       {activity?.issue_detail ? (
-        <a
+        <Link
           aria-disabled={activity.issue === null}
           href={workItemLink}
-          target={activity.issue === null ? "_self" : "_blank"}
-          rel={activity.issue === null ? "" : "noopener noreferrer"}
           className="inline items-center gap-1 font-medium text-custom-text-100 hover:underline"
         >
           <span className="whitespace-nowrap">{`${activity.project_detail.identifier}-${activity.issue_detail.sequence_id}`}</span>{" "}
           <span className="font-normal break-all">{activity.issue_detail?.name}</span>
-        </a>
+        </Link>
       ) : (
         <span className="inline-flex items-center gap-1 font-medium text-custom-text-100 whitespace-nowrap">
           {" a work item"}{" "}

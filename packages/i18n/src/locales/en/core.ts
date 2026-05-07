@@ -17,6 +17,7 @@ export default {
     favorites: "Favorites",
     pro: "Pro",
     upgrade: "Upgrade",
+    initiatives: "Initiatives",
   },
 
   auth: {

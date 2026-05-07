@@ -74,7 +74,10 @@ from .workspace import (
 
 from .favorite import UserFavorite
 
-from .issue_type import IssueType
+from .initiative import Initiative, InitiativeEpic
+from .custom_property import CustomProperty, IssueCustomPropertyValue
+
+from .issue_type import IssueType, ProjectIssueType
 
 from .recent_visit import UserRecentVisit
 
@@ -85,3 +88,5 @@ from .device import Device, DeviceSession
 from .sticky import Sticky
 
 from .description import Description, DescriptionVersion
+
+from .epic_update import EpicUpdate

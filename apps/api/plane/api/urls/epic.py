@@ -3,6 +3,8 @@ from plane.api.views import (
     EpicListCreateAPIView,
     EpicDetailAPIView,
     EpicIssuesAPIView,
+    EpicProgressAPIView,
+    EpicUpdateAPIView,
 )
 
 urlpatterns = [
@@ -22,5 +24,17 @@ urlpatterns = [
         "workspaces/<str:slug>/projects/<uuid:project_id>/epics/<uuid:epic_id>/issues/",
         EpicIssuesAPIView.as_view(),
         name="epic-issues",
+    ),
+    # Epic progress aggregation
+    path(
+        "workspaces/<str:slug>/projects/<uuid:project_id>/epics/<uuid:epic_id>/progress/",
+        EpicProgressAPIView.as_view(),
+        name="epic-progress",
+    ),
+    # Epic status updates (rocket icon)
+    path(
+        "workspaces/<str:slug>/projects/<uuid:project_id>/epics/<uuid:epic_id>/updates/",
+        EpicUpdateAPIView.as_view(),
+        name="epic-updates",
     ),
 ]

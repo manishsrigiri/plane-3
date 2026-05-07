@@ -173,6 +173,7 @@ class Issue(ProjectBaseModel):
         null=True,
         blank=True,
     )
+    acceptance_criteria_html = models.TextField(blank=True, default="<p></p>")
 
     issue_objects = IssueManager()
 

@@ -35,10 +35,12 @@ import { StateDropdown } from "@/components/dropdowns/state/dropdown";
 import { captureSuccess } from "@/helpers/event-tracker.helper";
 // hooks
 import { useProjectEstimates } from "@/hooks/store/estimates";
+import { useEstimate } from "@/hooks/store/estimates/use-estimate";
 import { useIssues } from "@/hooks/store/use-issues";
 import { useLabel } from "@/hooks/store/use-label";
 import { useProject } from "@/hooks/store/use-project";
 import { useProjectState } from "@/hooks/store/use-project-state";
+import { useWorkItemType } from "@/hooks/store/use-work-item-type";
 import { useAppRouter } from "@/hooks/use-app-router";
 import { useIssueStoreType } from "@/hooks/use-issue-layout-store";
 import { usePlatformOS } from "@/hooks/use-platform-os";
@@ -72,10 +74,16 @@ export const IssueProperties: React.FC<IIssueProperties> = observer((props) => {
   const {
     issues: { addCycleToIssue, removeCycleFromIssue },
   } = useIssues(storeType);
-  const { areEstimateEnabledByProjectId } = useProjectEstimates();
+  const { areEstimateEnabledByProjectId, currentActiveEstimateIdByProjectId } = useProjectEstimates();
+  const workItemTypeStore = useWorkItemType();
+  const activeEstimateId = issue.project_id ? currentActiveEstimateIdByProjectId(issue.project_id) : undefined;
+  const { estimatePointById } = useEstimate(activeEstimateId);
   const { getStateById } = useProjectState();
   const { isMobile } = usePlatformOS();
   const projectDetails = getProjectById(issue.project_id);
+  const isUserStory =
+    !!issue.type_id && issue.type_id === workItemTypeStore.getUserStoryType(issue.project_id ?? "")?.id;
+  const spValue = isUserStory && issue.estimate_point ? estimatePointById?.(issue.estimate_point)?.value : undefined;
 
   // router
   const router = useAppRouter();
@@ -422,8 +430,37 @@ export const IssueProperties: React.FC<IIssueProperties> = observer((props) => {
         )}
       </>
 
+      {/* story points badge for user story type */}
+      {isUserStory && projectId && areEstimateEnabledByProjectId(projectId?.toString()) && (
+        <div className="h-5" onFocus={handleEventPropagation} onClick={handleEventPropagation}>
+          <Tooltip tooltipContent="Story Points" isMobile={isMobile}>
+            <div className="flex items-center">
+              <EstimateDropdown
+                value={issue.estimate_point ?? undefined}
+                onChange={handleEstimate}
+                projectId={issue.project_id}
+                disabled={isReadOnly}
+                buttonVariant="border-with-text"
+                renderByDefault={isMobile}
+                placeholder="SP"
+                button={
+                  <span className={cn(
+                    "flex items-center gap-1 rounded border px-1.5 py-0.5 text-xs font-medium",
+                    spValue
+                      ? "border-blue-400 bg-blue-50 text-blue-600 dark:border-blue-600 dark:bg-blue-900/20 dark:text-blue-400"
+                      : "border-custom-border-300 text-custom-text-300"
+                  )}>
+                    SP{spValue ? `: ${spValue}` : ""}
+                  </span>
+                }
+              />
+            </div>
+          </Tooltip>
+        </div>
+      )}
+
       {/* estimates */}
-      {projectId && areEstimateEnabledByProjectId(projectId?.toString()) && (
+      {!isUserStory && projectId && areEstimateEnabledByProjectId(projectId?.toString()) && (
         <WithDisplayPropertiesHOC displayProperties={displayProperties} displayPropertyKey="estimate">
           <div className="h-5" onFocus={handleEventPropagation} onClick={handleEventPropagation}>
             <EstimateDropdown

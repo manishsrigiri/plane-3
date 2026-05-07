@@ -37,6 +37,7 @@ class FileAsset(BaseModel):
         PROJECT_COVER = "PROJECT_COVER"
         DRAFT_ISSUE_ATTACHMENT = "DRAFT_ISSUE_ATTACHMENT"
         DRAFT_ISSUE_DESCRIPTION = "DRAFT_ISSUE_DESCRIPTION"
+        INITIATIVE_DESCRIPTION = "INITIATIVE_DESCRIPTION"
 
     attributes = models.JSONField(default=dict)
     asset = models.FileField(upload_to=get_upload_path, max_length=800)
@@ -91,5 +92,8 @@ class FileAsset(BaseModel):
             self.EntityTypeContext.DRAFT_ISSUE_DESCRIPTION,
         ]:
             return f"/api/assets/v2/workspaces/{self.workspace.slug}/projects/{self.project_id}/{self.id}/"
+
+        if self.entity_type == self.EntityTypeContext.INITIATIVE_DESCRIPTION:
+            return f"/api/assets/v2/workspaces/{self.workspace.slug}/{self.id}/"
 
         return None

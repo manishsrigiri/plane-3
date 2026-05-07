@@ -1,13 +1,17 @@
 "use client";
 
+import { useState } from "react";
 import { observer } from "mobx-react";
-import { ChevronRight, X, Pencil, Trash, Link as LinkIcon, Loader } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { ChevronRight, X, Pencil, Trash, Link as LinkIcon, Loader, FolderInput } from "lucide-react";
 // plane imports
 import { useTranslation } from "@plane/i18n";
 import { Tooltip } from "@plane/propel/tooltip";
-import type { TIssue, TIssueServiceType, TSubIssueOperations } from "@plane/types";
+import type { ISearchIssueResponse, TIssue, TIssueServiceType, TSubIssueOperations } from "@plane/types";
 import { EIssueServiceType, EIssuesStoreType } from "@plane/types";
 import { ControlLink, CustomMenu } from "@plane/ui";
+// components
+import { ExistingIssuesListModal } from "@/components/core/modals/existing-issues-list-modal";
 import { cn, generateWorkItemLink } from "@plane/utils";
 // helpers
 import { useSubIssueOperations } from "@/components/issues/issue-detail-widgets/sub-issues/helper";
@@ -15,6 +19,7 @@ import { WithDisplayPropertiesHOC } from "@/components/issues/issue-layouts/prop
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 import { useProject } from "@/hooks/store/use-project";
+import { useWorkItemType } from "@/hooks/store/use-work-item-type";
 import useIssuePeekOverviewRedirection from "@/hooks/use-issue-peek-overview-redirection";
 import { usePlatformOS } from "@/hooks/use-platform-os";
 // plane web components
@@ -56,6 +61,7 @@ export const SubIssuesListItem: React.FC<Props> = observer((props) => {
     storeType = EIssuesStoreType.PROJECT,
   } = props;
   const { t } = useTranslation();
+  const router = useRouter();
   const {
     issue: { getIssueById },
     subIssues: {
@@ -70,7 +76,9 @@ export const SubIssuesListItem: React.FC<Props> = observer((props) => {
   const project = useProject();
   const { handleRedirection } = useIssuePeekOverviewRedirection();
   const { isMobile } = usePlatformOS();
+  const workItemTypeStore = useWorkItemType();
   const issue = getIssueById(issueId);
+  const [changeParentModalOpen, setChangeParentModalOpen] = useState(false);
 
   // derived values
   const projectDetail = (issue && issue.project_id && project.getProjectById(issue.project_id)) || undefined;
@@ -87,6 +95,18 @@ export const SubIssuesListItem: React.FC<Props> = observer((props) => {
 
   if (!issue) return <></>;
 
+  // tier label
+  const tierName = issue.type_id
+    ? workItemTypeStore.getTypeById(issue.type_id)?.name ?? (issue.is_epic ? "Epic" : "Task")
+    : issue.is_epic
+      ? "Epic"
+      : null;
+  const TIER_BADGE: Record<string, string> = {
+    Epic: "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400",
+    "User Story": "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
+    Task: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
+  };
+
   // check if current issue is the root issue
   const isCurrentIssueRoot = issueId === rootIssueId;
 
@@ -98,12 +118,20 @@ export const SubIssuesListItem: React.FC<Props> = observer((props) => {
     sequenceId: issue?.sequence_id,
   });
 
+  const handleItemClick = (issue: TIssue) => {
+    if (issue.is_epic) {
+      router.push(workItemLink);
+    } else {
+      handleIssuePeekOverview(issue);
+    }
+  };
+
   return (
     <div key={issueId}>
       <ControlLink
         id={`issue-${issue.id}`}
         href={workItemLink}
-        onClick={() => handleIssuePeekOverview(issue)}
+        onClick={() => handleItemClick(issue)}
         className="w-full cursor-pointer"
       >
         {issue && (
@@ -159,6 +187,16 @@ export const SubIssuesListItem: React.FC<Props> = observer((props) => {
                   )}
                 </div>
               </WithDisplayPropertiesHOC>
+              {tierName && TIER_BADGE[tierName] && (
+                <span
+                  className={cn(
+                    "flex-shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium",
+                    TIER_BADGE[tierName]
+                  )}
+                >
+                  {tierName}
+                </span>
+              )}
               <Tooltip tooltipContent={issue.name} isMobile={isMobile}>
                 <span className="w-full truncate text-sm text-custom-text-100">{issue.name}</span>
               </Tooltip>
@@ -208,6 +246,15 @@ export const SubIssuesListItem: React.FC<Props> = observer((props) => {
                     <span>{t("issue.copy_link")}</span>
                   </div>
                 </CustomMenu.MenuItem>
+
+                {canEdit && (
+                  <CustomMenu.MenuItem onClick={() => setChangeParentModalOpen(true)}>
+                    <div className="flex items-center gap-2">
+                      <FolderInput className="h-3.5 w-3.5" strokeWidth={2} />
+                      <span>Change parent</span>
+                    </div>
+                  </CustomMenu.MenuItem>
+                )}
 
                 {canEdit && (
                   <CustomMenu.MenuItem
@@ -261,6 +308,28 @@ export const SubIssuesListItem: React.FC<Props> = observer((props) => {
             subIssueOperations={subIssueOperations}
           />
         )}
+
+      {/* Change parent modal */}
+      {changeParentModalOpen && issue.project_id && (
+        <ExistingIssuesListModal
+          workspaceSlug={workspaceSlug}
+          projectId={issue.project_id}
+          isOpen={changeParentModalOpen}
+          handleClose={() => setChangeParentModalOpen(false)}
+          searchParams={{ issue_id: issueId }}
+          handleOnSubmit={async (selected: ISearchIssueResponse[]) => {
+            if (!selected[0] || !issue.project_id) return;
+            await subIssueOperations.updateSubIssue(
+              workspaceSlug,
+              issue.project_id,
+              parentIssueId,
+              issueId,
+              { parent_id: selected[0].id }
+            );
+            setChangeParentModalOpen(false);
+          }}
+        />
+      )}
     </div>
   );
 });

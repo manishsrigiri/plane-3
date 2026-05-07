@@ -2,6 +2,7 @@
 import type { FC } from "react";
 import React, { useState } from "react";
 import { observer } from "mobx-react";
+import Link from "next/link";
 import { copyUrlToClipboard, generateWorkItemLink } from "@plane/utils";
 // plane imports
 // helpers
@@ -55,14 +56,12 @@ export const CreateIssueToastActionItems: FC<TCreateIssueToastActionItems> = obs
 
   return (
     <div className="flex items-center gap-1 text-xs text-custom-text-200">
-      <a
+      <Link
         href={workItemLink}
-        target="_blank"
-        rel="noopener noreferrer"
         className="text-custom-primary px-2 py-1 hover:bg-custom-background-90 font-medium rounded"
       >
         {`View ${isEpic ? "epic" : "work item"}`}
-      </a>
+      </Link>
 
       {copied ? (
         <>

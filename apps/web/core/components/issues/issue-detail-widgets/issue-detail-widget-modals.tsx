@@ -2,11 +2,13 @@ import type { FC } from "react";
 import React from "react";
 import { observer } from "mobx-react";
 import { TOAST_TYPE, setToast } from "@plane/propel/toast";
+import { EIssueServiceType } from "@plane/types";
 import type { ISearchIssueResponse, TIssue, TIssueServiceType, TWorkItemWidgets } from "@plane/types";
 // components
 import { ExistingIssuesListModal } from "@/components/core/modals/existing-issues-list-modal";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
+import { useWorkItemType } from "@/hooks/store/use-work-item-type";
 // plane web imports
 import { WorkItemAdditionalWidgetModals } from "@/plane-web/components/issues/issue-detail-widgets/modals";
 // local imports
@@ -27,6 +29,7 @@ type Props = {
 export const IssueDetailWidgetModals: FC<Props> = observer((props) => {
   const { workspaceSlug, projectId, issueId, issueServiceType, hideWidgets } = props;
   // store hooks
+  const workItemTypeStore = useWorkItemType();
   const {
     isIssueLinkModalOpen,
     toggleIssueLinkModal: toggleIssueLinkModalStore,
@@ -125,10 +128,30 @@ export const IssueDetailWidgetModals: FC<Props> = observer((props) => {
     toggleRelationModal(null, null);
   };
 
-  // helpers
+  // Determine child type_id based on the hierarchy of the parent issue
+  const {
+    issue: { getIssueById },
+  } = useIssueDetail(issueServiceType);
+  const parentIssue = getIssueById(issueId);
+  const parentType = parentIssue?.type_id ? workItemTypeStore.getTypeById(parentIssue.type_id) : null;
+
+  let childTypeId: string | null | undefined = undefined;
+  if (issueServiceType === EIssueServiceType.EPICS) {
+    // Epic → auto-assign User Story
+    childTypeId = workItemTypeStore.getUserStoryType(projectId)?.id ?? null;
+  } else if (parentType && !parentType.is_epic) {
+    const isUserStory = parentType.name.toLowerCase().includes("user story");
+    if (isUserStory) {
+      // User Story → auto-assign default Task type
+      childTypeId = workItemTypeStore.getDefaultType(projectId)?.id ?? null;
+    }
+    // Task/Subtask → leave type unset (user picks)
+  }
+
   const createUpdateModalData: Partial<TIssue> = {
     parent_id: issueCrudOperationState?.create?.parentIssueId,
     project_id: projectId,
+    ...(childTypeId !== undefined ? { type_id: childTypeId } : {}),
   };
 
   const existingIssuesModalSearchParams = {
