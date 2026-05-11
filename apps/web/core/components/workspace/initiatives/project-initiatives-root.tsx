@@ -6,23 +6,28 @@ import { Plus } from "lucide-react";
 import { Button } from "@plane/ui";
 import RenderIfVisible from "@/components/core/render-if-visible-HOC";
 import { useStore } from "@/hooks/use-store";
-import { InitiativeCreateModal } from "./initiative-create-modal";
-import { InitiativeListItem } from "./initiative-list-item";
+import { ProjectInitiativeCreateModal } from "./project-initiative-create-modal";
+import { ProjectInitiativeListItem } from "./project-initiative-list-item";
 
 type Props = {
   workspaceSlug: string;
+  projectId: string;
 };
 
-export const InitiativesRoot = observer(({ workspaceSlug }: Props) => {
+export const ProjectInitiativesRoot = observer(({ workspaceSlug, projectId }: Props) => {
   const { initiative: initiativeStore } = useStore();
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (workspaceSlug) initiativeStore.fetchInitiatives(workspaceSlug);
-  }, [workspaceSlug]);
+    if (workspaceSlug && projectId) {
+      initiativeStore.fetchProjectInitiatives(workspaceSlug, projectId);
+    }
+  }, [workspaceSlug, projectId]);
 
-  const initiatives = Object.values(initiativeStore.initiativeMap).sort((a, b) => a.sort_order - b.sort_order);
+  const initiatives = Object.values(initiativeStore.initiativeMap)
+    .filter((i) => i.project === projectId)
+    .sort((a, b) => a.sort_order - b.sort_order);
 
   return (
     <div className="h-full w-full flex flex-col">
@@ -30,7 +35,7 @@ export const InitiativesRoot = observer(({ workspaceSlug }: Props) => {
       <div className="flex items-center justify-between px-6 py-4 border-b border-custom-border-200">
         <div>
           <h1 className="text-xl font-semibold text-custom-text-100">Initiatives</h1>
-          <p className="text-sm text-custom-text-300 mt-0.5">Strategic goals that group Epics across projects</p>
+          <p className="text-sm text-custom-text-300 mt-0.5">Strategic goals that group Epics in this project</p>
         </div>
         <Button
           variant="primary"
@@ -55,7 +60,9 @@ export const InitiativesRoot = observer(({ workspaceSlug }: Props) => {
             </div>
             <div>
               <p className="text-sm font-medium text-custom-text-200">No initiatives yet</p>
-              <p className="text-xs text-custom-text-300 mt-1">Create an initiative to group Epics toward a strategic goal.</p>
+              <p className="text-xs text-custom-text-300 mt-1">
+                Create an initiative to track strategic goals for this project.
+              </p>
             </div>
             <Button
               variant="primary"
@@ -76,16 +83,22 @@ export const InitiativesRoot = observer(({ workspaceSlug }: Props) => {
                 verticalOffset={200}
                 shouldRecordHeights
               >
-                <InitiativeListItem initiative={initiative} workspaceSlug={workspaceSlug} />
+                <ProjectInitiativeListItem
+                  initiative={initiative}
+                  workspaceSlug={workspaceSlug}
+                  projectId={projectId}
+                />
               </RenderIfVisible>
             ))}
           </div>
         )}
       </div>
 
-      <InitiativeCreateModal
+      <ProjectInitiativeCreateModal
         isOpen={createModalOpen}
         onClose={() => setCreateModalOpen(false)}
+        workspaceSlug={workspaceSlug}
+        projectId={projectId}
       />
     </div>
   );

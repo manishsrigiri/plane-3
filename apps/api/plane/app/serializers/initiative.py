@@ -73,6 +73,7 @@ class InitiativeListSerializer(BaseSerializer):
             "start_date",
             "end_date",
             "workspace",
+            "project",
             "owner",
             "owner_detail",
             "sort_order",

@@ -13,6 +13,7 @@ export type TInitiative = {
     avatar: string;
   };
   workspace: string;
+  project: string | null;
   start_date: string | null;
   end_date: string | null;
   sort_order: number;

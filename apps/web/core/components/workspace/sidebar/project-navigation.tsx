@@ -7,7 +7,7 @@ import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { EUserPermissionsLevel, EUserPermissions, EProjectFeatureKey } from "@plane/constants";
 import { useTranslation } from "@plane/i18n";
-import { CycleIcon, EpicIcon, IntakeIcon, ModuleIcon, PageIcon, ViewsIcon, WorkItemsIcon } from "@plane/propel/icons";
+import { CycleIcon, EpicIcon, IntakeIcon, LayersIcon, ModuleIcon, PageIcon, ViewsIcon, WorkItemsIcon } from "@plane/propel/icons";
 import type { EUserProjectRoles } from "@plane/types";
 // plane ui
 // components
@@ -84,6 +84,16 @@ export const ProjectNavigation: FC<TProjectItemsProps> = observer((props) => {
         access: [EUserPermissions.ADMIN, EUserPermissions.MEMBER, EUserPermissions.GUEST],
         shouldRender: true,
         sortOrder: 2,
+      },
+      {
+        i18n_key: "sidebar.initiatives",
+        key: "initiatives",
+        name: "Initiatives",
+        href: `/${workspaceSlug}/projects/${projectId}/initiatives`,
+        icon: LayersIcon,
+        access: [EUserPermissions.ADMIN, EUserPermissions.MEMBER, EUserPermissions.GUEST],
+        shouldRender: true,
+        sortOrder: 2.5,
       },
       {
         i18n_key: "sidebar.cycles",

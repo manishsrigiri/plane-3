@@ -60,4 +60,59 @@ export class InitiativeService extends APIService {
       .then((res) => res?.data)
       .catch((err) => { throw err?.response?.data; });
   }
+
+  async searchProjectEpics(workspaceSlug: string, projectId: string, search: string): Promise<ISearchIssueResponse[]> {
+    return this.get(`/api/workspaces/${workspaceSlug}/projects/${projectId}/search-epics/`, { params: { search } })
+      .then((res) => res?.data)
+      .catch((err) => { throw err?.response?.data; });
+  }
+
+  // Project-scoped initiative methods
+  async getProjectInitiatives(workspaceSlug: string, projectId: string, params?: Record<string, string>): Promise<TInitiative[]> {
+    return this.get(`/api/workspaces/${workspaceSlug}/projects/${projectId}/initiatives/`, { params })
+      .then((res) => res?.data)
+      .catch((err) => { throw err?.response?.data; });
+  }
+
+  async getProjectInitiativeById(workspaceSlug: string, projectId: string, initiativeId: string): Promise<TInitiative> {
+    return this.get(`/api/workspaces/${workspaceSlug}/projects/${projectId}/initiatives/${initiativeId}/`)
+      .then((res) => res?.data)
+      .catch((err) => { throw err?.response?.data; });
+  }
+
+  async createProjectInitiative(workspaceSlug: string, projectId: string, data: Partial<TInitiative>): Promise<TInitiative> {
+    return this.post(`/api/workspaces/${workspaceSlug}/projects/${projectId}/initiatives/`, data)
+      .then((res) => res?.data)
+      .catch((err) => { throw err?.response?.data; });
+  }
+
+  async updateProjectInitiative(workspaceSlug: string, projectId: string, initiativeId: string, data: Partial<TInitiative>): Promise<TInitiative> {
+    return this.patch(`/api/workspaces/${workspaceSlug}/projects/${projectId}/initiatives/${initiativeId}/`, data)
+      .then((res) => res?.data)
+      .catch((err) => { throw err?.response?.data; });
+  }
+
+  async deleteProjectInitiative(workspaceSlug: string, projectId: string, initiativeId: string): Promise<void> {
+    return this.delete(`/api/workspaces/${workspaceSlug}/projects/${projectId}/initiatives/${initiativeId}/`)
+      .then((res) => res?.data)
+      .catch((err) => { throw err?.response?.data; });
+  }
+
+  async getProjectInitiativeEpics(workspaceSlug: string, projectId: string, initiativeId: string): Promise<TInitiativeEpic[]> {
+    return this.get(`/api/workspaces/${workspaceSlug}/projects/${projectId}/initiatives/${initiativeId}/epics/`)
+      .then((res) => res?.data)
+      .catch((err) => { throw err?.response?.data; });
+  }
+
+  async addEpicsToProjectInitiative(workspaceSlug: string, projectId: string, initiativeId: string, epicIds: string[]): Promise<TInitiativeEpic[]> {
+    return this.post(`/api/workspaces/${workspaceSlug}/projects/${projectId}/initiatives/${initiativeId}/epics/`, { epic_ids: epicIds })
+      .then((res) => res?.data)
+      .catch((err) => { throw err?.response?.data; });
+  }
+
+  async removeEpicFromProjectInitiative(workspaceSlug: string, projectId: string, initiativeId: string, epicId: string): Promise<void> {
+    return this.delete(`/api/workspaces/${workspaceSlug}/projects/${projectId}/initiatives/${initiativeId}/epics/${epicId}/`)
+      .then((res) => res?.data)
+      .catch((err) => { throw err?.response?.data; });
+  }
 }

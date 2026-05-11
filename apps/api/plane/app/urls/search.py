@@ -1,7 +1,7 @@
 from django.urls import path
 
 
-from plane.app.views import GlobalSearchEndpoint, IssueSearchEndpoint, SearchEndpoint, WorkspaceEpicSearchEndpoint
+from plane.app.views import GlobalSearchEndpoint, IssueSearchEndpoint, SearchEndpoint, WorkspaceEpicSearchEndpoint, ProjectEpicSearchEndpoint
 
 
 urlpatterns = [
@@ -24,5 +24,10 @@ urlpatterns = [
         "workspaces/<str:slug>/search-epics/",
         WorkspaceEpicSearchEndpoint.as_view(),
         name="workspace-epic-search",
+    ),
+    path(
+        "workspaces/<str:slug>/projects/<uuid:project_id>/search-epics/",
+        ProjectEpicSearchEndpoint.as_view(),
+        name="project-epic-search",
     ),
 ]

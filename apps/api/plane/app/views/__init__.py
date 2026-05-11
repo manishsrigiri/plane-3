@@ -171,7 +171,7 @@ from .page.base import (
 from .page.version import PageVersionEndpoint
 
 from .search.base import GlobalSearchEndpoint, SearchEndpoint
-from .search.issue import IssueSearchEndpoint, WorkspaceEpicSearchEndpoint
+from .search.issue import IssueSearchEndpoint, WorkspaceEpicSearchEndpoint, ProjectEpicSearchEndpoint
 
 
 from .external.base import (
@@ -234,7 +234,7 @@ from .user.base import AccountEndpoint, ProfileEndpoint, UserSessionEndpoint
 
 from .timezone.base import TimezoneEndpoint
 
-from .workspace.initiative import InitiativeViewSet, InitiativeEpicViewSet
+from .workspace.initiative import InitiativeViewSet, InitiativeEpicViewSet, ProjectInitiativeViewSet, ProjectInitiativeEpicViewSet
 from .workspace.work_item_type import WorkspaceWorkItemTypeEndpoint, ProjectWorkItemTypeEndpoint
 from .workspace.custom_property import (
     CustomPropertyEndpoint,

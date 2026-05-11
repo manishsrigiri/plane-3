@@ -10,6 +10,13 @@ class Initiative(BaseModel):
         on_delete=models.CASCADE,
         related_name="workspace_initiatives",
     )
+    project = models.ForeignKey(
+        "db.Project",
+        on_delete=models.CASCADE,
+        related_name="project_initiatives",
+        null=True,
+        blank=True,
+    )
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
     description_html = models.TextField(blank=True, default="<p></p>")

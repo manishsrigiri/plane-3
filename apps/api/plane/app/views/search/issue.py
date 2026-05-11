@@ -191,3 +191,46 @@ class WorkspaceEpicSearchEndpoint(BaseAPIView):
             )[:100],
             status=status.HTTP_200_OK,
         )
+
+
+class ProjectEpicSearchEndpoint(BaseAPIView):
+    """Search for unlinked Epics within a specific project."""
+
+    def get(self, request, slug, project_id):
+        from plane.app.permissions import allow_permission, ROLE
+        query = request.query_params.get("search", "")
+        # Only epics not yet linked to any initiative
+        linked_epic_ids = (
+            Issue.issue_objects.filter(
+                workspace__slug=slug,
+                project_id=project_id,
+                type__is_epic=True,
+                epic_initiatives__isnull=False,
+            )
+            .values_list("id", flat=True)
+        )
+        issues = Issue.issue_objects.filter(
+            workspace__slug=slug,
+            project_id=project_id,
+            type__is_epic=True,
+            project__project_projectmember__member=request.user,
+            project__project_projectmember__is_active=True,
+        ).exclude(id__in=linked_epic_ids)
+        if query:
+            issues = search_issues(query, issues)
+        return Response(
+            issues.values(
+                "name",
+                "id",
+                "start_date",
+                "sequence_id",
+                "project__name",
+                "project__identifier",
+                "project_id",
+                "workspace__slug",
+                "state__name",
+                "state__group",
+                "state__color",
+            )[:100],
+            status=status.HTTP_200_OK,
+        )
